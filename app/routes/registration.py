@@ -21,13 +21,13 @@ async def registration (param: input.Registration,background_tasks: BackgroundTa
         characters = string.ascii_letters + string.digits 
         email_otp = ''.join(random.choice(characters) for i in range(6))
         print (phone_otp,email_otp)
-        phone_otp = table.MobileOtp(phone_number=param.phoneNumber,code=phone_otp)
-        email_otp = table.EmailOtp(email_id=param.email,code=email_otp)
-        db.add(phone_otp)
+        phone_otp_db = table.MobileOtp(phone_number=param.phoneNumber,code=phone_otp)
+        email_otp_db = table.EmailOtp(email_id=param.email,code=email_otp)
+        db.add(phone_otp_db)
         db.commit()
-        db.add(email_otp)
+        db.add(email_otp_db)
         db.commit()
-        background_tasks.add_task(send_in_background,email_otp,param.email,background_tasks)
+        background_tasks.add_task(send_in_background,str(email_otp),param.email,background_tasks)
         background_tasks.add_task(send_sms,phone_otp,str(param.phoneNumber))
         query=f'''INSERT INTO registration (firstName,lastName,password,phoneNumber,email,region,locality,district,school,classType,classStream) VALUES ('{param.firstName}','{param.lastName}','{param.password}','{param.phoneNumber}','{param.email}','{param.region}','{param.locality}','{param.district}','{param.school}','{param.classType}','{param.classStream}');'''
         db.execute(query)

@@ -19,6 +19,7 @@ def send_in_background(otp:str,email:str,background_tasks: BackgroundTasks)-> JS
     conf = ConnectionConfig(
         MAIL_USERNAME='sathyanmanickam1015@gmail.com',
         MAIL_PASSWORD='iudukwufljxsimrz',
+        MAIL_FROM='sathyanmanickam1015@gmail.com',
         MAIL_PORT=587,
         MAIL_SERVER='smtp.gmail.com',
         MAIL_STARTTLS=True,
@@ -33,7 +34,7 @@ def send_in_background(otp:str,email:str,background_tasks: BackgroundTasks)-> JS
     message = MessageSchema(
         subject='test',
         recipients=[email],
-        body=otp,
+        body=str(otp),
         subtype='plain'
     )   
     fm = FastMail(conf)
