@@ -29,6 +29,7 @@ def send_in_background(otp:str,email:str,background_tasks: BackgroundTasks)-> JS
     #     recipients=email.dict().get("email"),
     #     body="Simple background task",
     #     subtype=MessageType.plain)
+    print(otp,email)
     message = MessageSchema(
         subject='test',
         recipients=[email],

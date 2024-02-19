@@ -27,8 +27,8 @@ async def registration (param: input.Registration,background_tasks: BackgroundTa
         db.commit()
         db.add(email_otp)
         db.commit()
-        background_tasks.add_task(send_in_background,email_otp,{param.email},background_tasks)
-        background_tasks.add_task(send_sms,phone_otp,{param.phoneNumber})
+        background_tasks.add_task(send_in_background,email_otp,param.email,background_tasks)
+        background_tasks.add_task(send_sms,phone_otp,str(param.phoneNumber))
         query=f'''INSERT INTO registration (firstName,lastName,password,phoneNumber,email,region,locality,district,school,classType,classStream) VALUES ('{param.firstName}','{param.lastName}','{param.password}','{param.phoneNumber}','{param.email}','{param.region}','{param.locality}','{param.district}','{param.school}','{param.classType}','{param.classStream}');'''
         db.execute(query)
         db.commit()
@@ -78,7 +78,7 @@ async def password_recovery(param:input.PasswordRecovery,background_tasks:Backgr
         email_otp_data = db.query(table.EmailOtp).filter(table.EmailOtp.email_id ==param.email)
         email_otp_data.update({"code": email_otp} ,synchronize_session=False)
         db.commit()
-        background_tasks.add_task(send_in_background,email_otp,{param.email},background_tasks)
+        background_tasks.add_task(send_in_background,email_otp,param.email,background_tasks)
         return {"code":200,"Message": "Code sended"}
     
 @router.post("/update_password")
@@ -87,8 +87,10 @@ async def update_password(param:input.UpdatePassword,db: Session = Depends(datab
     if not user:
         return {"code": 200, "Message" : "Email ID is not available Please register"}
     else:
-        data = db.query(table.Registration).filter(table.Registration.email ==param.email)
+        data = db.query(table.Registration).filter(table.Registration.email==param.email)
+        print(data)
         data.update({"password": param.password},synchronize_session=False)
+        db.commit()
         return {"code": 200, "Messgae": "Updated password"}
     
 @router.post("/resend_mobile_otp")
@@ -97,7 +99,7 @@ async def resend_mobile_otp(param:input.ResendMobileOtp,background_tasks:Backgro
     mobile_otp_data = db.query(table.MobileOtp).filter(table.MobileOtp.phone_number ==param.phoneNumber)
     mobile_otp_data.update({"code": phone_otp} ,synchronize_session=False)
     db.commit()
-    background_tasks.add_task(send_sms,phone_otp,{param.phoneNumber})
+    background_tasks.add_task(send_sms,phone_otp,str(param.phoneNumber))
     return {"code":200,"Message": "Code sended"}
 
 @router.post("/resend_email_otp")
@@ -107,5 +109,5 @@ async def resend_email_otp(param:input.ResendEmailOtp,background_tasks:Backgroun
     email_otp_data = db.query(table.EmailOtp).filter(table.EmailOtp.email_id ==param.email)
     email_otp_data.update({"code": email_otp} ,synchronize_session=False)
     db.commit()
-    background_tasks.add_task(send_in_background,email_otp,{param.email},background_tasks)
+    background_tasks.add_task(send_in_background,email_otp,param.email,background_tasks)
     return {"code":200,"Message": "Code sended"}
