@@ -25,4 +25,4 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - name: Push Docker Image to Azure VM
       run: |
-        sshpass -p "c)QXt3?qAr-sRtJ" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@144.126.252.99 'pwd && cd ~/ProfOgApi && pwd && ls -lta'
+        sshpass -p "c)QXt3?qAr-sRtJ" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@144.126.252.99 'pwd && cd ~/ProfOgApi && git pull && ENV=stage docker compose up -d --no-deps --build api'

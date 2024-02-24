@@ -9,6 +9,8 @@ services:
     env_file:
       - .env.${ENV}
     command: ["sh", "-c", "ENV=${ENV} uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"]
+    depends_on:
+      - postgres
 
   postgres:
     image: postgres:15
