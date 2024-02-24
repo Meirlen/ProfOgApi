@@ -1,4 +1,6 @@
 from pydantic import BaseModel
+from datetime import date
+from typing import Optional
 
 class Registration(BaseModel):
     firstName:str
@@ -36,3 +38,11 @@ class ResendMobileOtp(BaseModel):
 
 class ResendEmailOtp(BaseModel):
     email:str
+
+class CountUserOnEachDay(BaseModel):
+    from_date: date
+    to_date: date
+
+class FilterByIdOrRegion(BaseModel):
+    id: Optional[str]=None
+    region: Optional[str]=None

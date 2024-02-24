@@ -18,6 +18,8 @@ class Registration(Base):
     school = Column(String,nullable=True)
     classtype = Column(String,nullable=True)
     classstream = Column(String,nullable=True)
+    created_at = Column(TIMESTAMP(timezone=True),
+                        nullable=False, server_default=text('now()')) 
 
 class MobileOtp(Base):
     __tablename__ = "mobile_otps"

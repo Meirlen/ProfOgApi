@@ -8,6 +8,7 @@ import string
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from .. utils.sendmail import *
 from .. utils.sendsms import *
+from datetime import datetime
 
 
 router = APIRouter(tags=['Login'])
@@ -29,7 +30,7 @@ async def registration (param: input.Registration,background_tasks: BackgroundTa
         db.commit()
         background_tasks.add_task(send_in_background,str(email_otp),param.email,background_tasks)
         background_tasks.add_task(send_sms,phone_otp,str(param.phoneNumber))
-        query=f'''INSERT INTO registration (firstName,lastName,password,phoneNumber,email,region,locality,district,school,classType,classStream) VALUES ('{param.firstName}','{param.lastName}','{param.password}','{param.phoneNumber}','{param.email}','{param.region}','{param.locality}','{param.district}','{param.school}','{param.classType}','{param.classStream}');'''
+        query=f'''INSERT INTO registration (firstName,lastName,password,phoneNumber,email,region,locality,district,school,classType,classStream,created_at) VALUES ('{param.firstName}','{param.lastName}','{param.password}','{param.phoneNumber}','{param.email}','{param.region}','{param.locality}','{param.district}','{param.school}','{param.classType}','{param.classStream}','{datetime.now()}');'''
         db.execute(query)
         db.commit()
         return {"code":200,"Message": "Code sended"}
