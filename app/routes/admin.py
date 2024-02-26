@@ -24,15 +24,17 @@ async def count_user_on_each_day(param:input.CountUserOnEachDay):
 @router.post("/filterbyidorregion")
 async def filterbyidorregion(param:input.FilterByIdOrRegion,db: Session = Depends(database.get_db)):
     result=[]
+    limit =20
+    offset = (limit*param.page) - limit
 
     if param.id != '' and param.region !='':
-        query = f''' SELECT * FROM registration where id = {param.id} AND region = '{param.region}';'''
+        query = f''' SELECT * FROM registration where id = {param.id} AND region = '{param.region}' LIMIT {limit} OFFSET {offset};'''
     elif param.id == '' and param.region !='':
-        query = f''' SELECT * FROM registration where region = '{param.region}';'''
+        query = f''' SELECT * FROM registration where region = '{param.region}' LIMIT {limit} OFFSET {offset};'''
     elif param.id !='' and param.region == '':
-        query = f''' SELECT * FROM registration where id = {param.id};'''
+        query = f''' SELECT * FROM registration where id = {param.id} LIMIT {limit} OFFSET {offset};'''
     else:
-        query = f''' SELECT * FROM registration;'''
+        query = f''' SELECT * FROM registration LIMIT {limit} OFFSET {offset} ;'''
     data = db.execute(query).fetchall()
     for item in data:
         result.append({

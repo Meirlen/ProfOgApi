@@ -46,3 +46,4 @@ class CountUserOnEachDay(BaseModel):
 class FilterByIdOrRegion(BaseModel):
     id: Optional[str]=None
     region: Optional[str]=None
+    page :int
