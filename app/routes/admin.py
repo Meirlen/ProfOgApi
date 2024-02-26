@@ -26,7 +26,11 @@ async def filterbyidorregion(param:input.FilterByIdOrRegion,db: Session = Depend
     result=[]
     limit =20
     offset = (limit*param.page) - limit
-
+    lengthquery= f'''SELECT * FROM registration;'''
+    lengthquerydata= db.execute(lengthquery).fetchall()
+    result.append({
+        "Total Registered Users": len(lengthquerydata)
+    })
     if param.id != '' and param.region !='':
         query = f''' SELECT * FROM registration where id = {param.id} AND region = '{param.region}' LIMIT {limit} OFFSET {offset};'''
     elif param.id == '' and param.region !='':
@@ -96,7 +100,29 @@ async def getTypeAndTitle(request:Request,page: int,db: Session = Depends(databa
     result=[]
     limit =20
     offset = (limit*page) - limit
+    lengthquery=f'''SELECT test.id,type.type,test.title,test.language FROM type JOIN test ON type.id=test.typeid WHERE test.language='{lang}';'''
+    lengthquerydata=db.execute(lengthquery).fetchall()
+    print(len(lengthquerydata))
+    result.append({
+        "Total": len(lengthquerydata)
+    })
     query = f'''SELECT test.id,type.type,test.title,test.language FROM type JOIN test ON type.id=test.typeid WHERE test.language='{lang}' LIMIT {limit} OFFSET {offset};'''
+    query_data_result=db.execute(query).fetchall()
+    for item in query_data_result:
+        result.append({
+            "id": item[0],
+            "type":item[1],
+            "title":item[2],
+            "language":item[3]
+        })
+
+    return result
+
+@router.get("/getAllTypeAndTitle")
+async def getTypeAndTitle(db: Session = Depends(database.get_db)):
+    result=[]
+    query = f'''SELECT test.id,type.type,test.title,test.language FROM type JOIN test ON type.id=test.typeid;'''
+    print(query)
     query_data_result=db.execute(query).fetchall()
     for item in query_data_result:
         result.append({
