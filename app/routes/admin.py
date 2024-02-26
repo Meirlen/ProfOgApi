@@ -6,7 +6,7 @@ from .. schemas import input
 from .. models import table
 import random
 import string
-
+from fastapi import Request
 
 router = APIRouter(tags=['admin'])
 
@@ -51,4 +51,59 @@ async def filterbyidorregion(param:input.FilterByIdOrRegion,db: Session = Depend
             "Class Stream": item[11],
             "created_at": item[12]
         })
+    return result
+
+@router.post("/createType")
+async def createType(param:input.CreateType,db: Session = Depends(database.get_db)):
+    result=[]
+    query = table.Type(type=param.type)
+    db.add(query)
+    db.commit()
+    db.refresh(query)
+    query_data = f'''SELECT * FROM type WHERE type = '{param.type}';'''
+    query_data_result=db.execute(query_data).fetchall()
+    for item in query_data_result:
+        result.append({
+            "id": item[0],
+            "type":item[1]
+        })
+
+    return result
+
+@router.post("/createTestTitle")
+async def createTestTitle(request:Request,param:input.CreateTitle,db: Session = Depends(database.get_db)):
+    lang=request.headers.get("lang")
+    result=[]
+    query = table.Test(typeid=param.typeid,title=param.Title,language=lang)
+    db.add(query)
+    db.commit()
+    db.refresh(query)
+    query_data = f'''SELECT * FROM test WHERE typeid={param.typeid} AND title='{param.Title}';'''
+    query_data_result=db.execute(query_data).fetchall()
+    for item in query_data_result:
+        result.append({
+            "id":item[0],
+            "typeid": item[1],
+            "title":item[2],
+            "language":item[3]
+        })
+
+    return result
+
+@router.get("/getTypeAndTitle")
+async def getTypeAndTitle(request:Request,page: int,db: Session = Depends(database.get_db)):
+    lang=request.headers.get("lang")
+    result=[]
+    limit =20
+    offset = (limit*page) - limit
+    query = f'''SELECT test.id,type.type,test.title,test.language FROM type JOIN test ON type.id=test.typeid WHERE test.language='{lang}' LIMIT {limit} OFFSET {offset};'''
+    query_data_result=db.execute(query).fetchall()
+    for item in query_data_result:
+        result.append({
+            "id": item[0],
+            "type":item[1],
+            "title":item[2],
+            "language":item[3]
+        })
+
     return result

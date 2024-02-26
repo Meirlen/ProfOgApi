@@ -36,3 +36,15 @@ class EmailOtp(Base):
     code = Column(String, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True),
                         nullable=False, server_default=text('now()'))  
+    
+class Type(Base):
+    __tablename__ = "type"
+    id = Column(Integer, primary_key=True, nullable=False)
+    type = Column(String, nullable=False)
+
+class Test(Base):
+    __tablename__ = "test"
+    id = Column(Integer, primary_key=True, nullable=False)
+    typeid= Column(Integer, nullable=False)
+    title = Column(String, nullable=False)
+    language=Column(String,nullable=False)

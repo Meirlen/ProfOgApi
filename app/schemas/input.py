@@ -47,3 +47,10 @@ class FilterByIdOrRegion(BaseModel):
     id: Optional[str]=None
     region: Optional[str]=None
     page :int
+
+class CreateType(BaseModel):
+    type:str
+
+class CreateTitle(BaseModel):
+    typeid:str
+    Title:str
