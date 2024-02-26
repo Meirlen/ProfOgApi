@@ -102,7 +102,6 @@ async def getTypeAndTitle(request:Request,page: int,db: Session = Depends(databa
     offset = (limit*page) - limit
     lengthquery=f'''SELECT test.id,type.type,test.title,test.language FROM type JOIN test ON type.id=test.typeid WHERE test.language='{lang}';'''
     lengthquerydata=db.execute(lengthquery).fetchall()
-    print(len(lengthquerydata))
     result.append({
         "Total": len(lengthquerydata)
     })
@@ -122,7 +121,6 @@ async def getTypeAndTitle(request:Request,page: int,db: Session = Depends(databa
 async def getTypeAndTitle(db: Session = Depends(database.get_db)):
     result=[]
     query = f'''SELECT test.id,type.type,test.title,test.language FROM type JOIN test ON type.id=test.typeid;'''
-    print(query)
     query_data_result=db.execute(query).fetchall()
     for item in query_data_result:
         result.append({
@@ -133,3 +131,31 @@ async def getTypeAndTitle(db: Session = Depends(database.get_db)):
         })
 
     return result
+
+@router.get("/getAllType")
+async def getAllType(db: Session = Depends(database.get_db)):
+    result=[]
+    query = f'''SELECT * FROM type'''
+    query_data_result=db.execute(query).fetchall()
+    for item in query_data_result:
+        result.append({
+            "id": item[0],
+            "type":item[1]
+        })
+
+    return result
+
+
+@router.post("/updateType")
+async def updateType(param:input.UpdateType,db: Session = Depends(database.get_db)):
+    query = f'''UPDATE type SET type='{param.type}' where id={param.id};'''
+    db.execute(query)
+    db.commit()
+    return {"Msg" : "Type updated successfully"}
+
+@router.post("/deleteType")
+async def deleteType(param:input.DeleteType,db: Session = Depends(database.get_db)):
+    query = f'''DELETE FROM type where id={param.id};'''
+    db.execute(query)
+    db.commit()
+    return {"Msg" : "Type Deleted successfully"}

@@ -54,3 +54,10 @@ class CreateType(BaseModel):
 class CreateTitle(BaseModel):
     typeid:str
     Title:str
+
+class UpdateType(BaseModel):
+    id:int
+    type:str
+
+class DeleteType(BaseModel):
+    id:int
