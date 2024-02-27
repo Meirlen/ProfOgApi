@@ -1,12 +1,16 @@
 from fastapi import APIRouter,Response,Depends,BackgroundTasks,status,HTTPException
 from sqlalchemy.orm import Session
 from .. config import database as database
-from .. config.database import engine
+from .. config.database import engine,SQLALCHEMY_DATABASE_URL
 from .. schemas import input
 from .. models import table
-import random
+import os
 import string
 from fastapi import Request
+from typing import List
+from .. utils.uploadfiletospaces import uploadfile
+from fastapi import File, UploadFile,Form
+from tempfile import NamedTemporaryFile
 
 router = APIRouter(tags=['admin'])
 
@@ -159,3 +163,63 @@ async def deleteType(param:input.DeleteType,db: Session = Depends(database.get_d
     db.execute(query)
     db.commit()
     return {"Msg" : "Type Deleted successfully"}
+
+@router.post("/createSpecialty")
+async def createSpecialty(specialtyname :str = Form(...),
+    photos: List[UploadFile] = File(...),
+    typeid:int  = Form(...),
+    barcode:str  = Form(...),
+    hardskills: List[str] = Form(...),
+    softskills :List[str] = Form(...),
+    description :str  = Form(...),
+    about:str = Form(...),
+    video: List[UploadFile] = File(...),
+    db: Session = Depends(database.get_db)):
+    query = f''' INSERT INTO speciality (typeid,barcode,hardskills,softskills,description,about) VALUES ({typeid},'{barcode}',ARRAY {hardskills},ARRAY {softskills},'{description}','{about}') RETURNING ID'''
+    print(query)
+    data=db.execute(query).fetchall()
+    db.commit()
+    id=(data[0]['id'])
+    for files in (photos):  
+        uploadphotoname=f'{id}_photo'+'.jpeg'
+        print((uploadphotoname))
+        temp = NamedTemporaryFile(delete=False)
+        try:
+            try:
+                contents = files.file.read()
+                with temp as f:
+                    f.write(contents)
+            except Exception:
+                raise HTTPException(status_code=500, detail='Error on uploading the file')
+            finally:
+                files.file.close()
+            obj=uploadfile()
+            obj.upload_file(temp.name,'profogapi-stage',uploadphotoname,ExtraArgs={'ContentType': "image/jpeg"})
+        except Exception:
+            raise HTTPException(status_code=500, detail='Something went wrong')
+        finally:
+            os.remove(temp.name)
+    for files in (video):  
+        uploadfilename=f'{id}_video'+'.mp4'
+        print(type(photos))
+        temp = NamedTemporaryFile(delete=False)
+        try:
+            try:
+                contents = files.file.read()
+                with temp as f:
+                    f.write(contents)
+            except Exception:
+                raise HTTPException(status_code=500, detail='Error on uploading the file')
+            finally:
+                files.file.close()
+            obj=uploadfile()
+            obj.upload_file(temp.name,'profogapi-stage',uploadfilename,ExtraArgs={'ContentType': "image/jpeg"})
+        except Exception:
+            raise HTTPException(status_code=500, detail='Something went wrong')
+        finally:
+            os.remove(temp.name)
+    query = f'''UPDATE speciality SET photos='{uploadphotoname}',videos='{uploadfilename}' where id ={id};'''
+    print(query)
+    db.execute(query)
+    db.commit()
+    return {"Msg" : "Speciality created successfully"}

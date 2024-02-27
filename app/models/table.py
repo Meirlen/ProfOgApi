@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Float,Text,BIGINT
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Float,Text,BIGINT,ARRAY,JSON
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 from sqlalchemy.sql.expression import text
 
@@ -48,3 +48,18 @@ class Test(Base):
     typeid= Column(Integer, nullable=False)
     title = Column(String, nullable=False)
     language=Column(String,nullable=False)
+
+class Speciality(Base):
+    __tablename__ = "speciality"
+    id = Column(Integer, primary_key=True, nullable=False)
+    typeid= Column(Integer, nullable=False)
+    photos = Column(String, nullable=True)
+    barcode=Column(String ,nullable=False)
+    hardskills= Column(ARRAY(String), nullable=False)
+    softskills = Column(ARRAY(String), nullable=False)
+    description=Column(String,nullable=False)
+    about=Column(String,nullable=False)
+    videos = Column(String, nullable=True)
+
+    
+
