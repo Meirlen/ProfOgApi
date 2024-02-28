@@ -183,7 +183,7 @@ async def createSpecialty(request:Request,
     datapartnersSalary = partnersSalary[0].split(',')
     print(datapartnersSalary,datapartnersTitle)
     print (datapartnersTitle[1])
-    lang="RU"
+    lang=request.headers.get("lang")
     query = f''' INSERT INTO speciality (specialtyname,typeid,barcode,hardskills,softskills,description,about,language) VALUES ('{specialtyname}',{typeid},'{barcode}',ARRAY {hardskills},ARRAY {softskills},'{description}','{about}','{lang}') RETURNING ID'''
     # print(query)
     data=db.execute(query).fetchall()
