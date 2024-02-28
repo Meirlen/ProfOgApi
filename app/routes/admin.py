@@ -7,7 +7,7 @@ from .. models import table
 import os
 import string
 from fastapi import Request
-from typing import List
+from typing import List,Dict
 from .. utils.uploadfiletospaces import uploadfile
 from fastapi import File, UploadFile,Form
 from tempfile import NamedTemporaryFile
@@ -163,9 +163,10 @@ async def deleteType(param:input.DeleteType,db: Session = Depends(database.get_d
     db.execute(query)
     db.commit()
     return {"Msg" : "Type Deleted successfully"}
-
+import json
 @router.post("/createSpecialty")
-async def createSpecialty(specialtyname :str = Form(...),
+async def createSpecialty(request:Request,
+    specialtyname :str = Form(...),
     photos: List[UploadFile] = File(...),
     typeid:int  = Form(...),
     barcode:str  = Form(...),
@@ -174,9 +175,17 @@ async def createSpecialty(specialtyname :str = Form(...),
     description :str  = Form(...),
     about:str = Form(...),
     video: List[UploadFile] = File(...),
+    partnersImage: List[UploadFile] = File(...),
+    partnersTitle: List[str] = Form(...),
+    partnersSalary: List[str] = Form(...),
     db: Session = Depends(database.get_db)):
-    query = f''' INSERT INTO speciality (typeid,barcode,hardskills,softskills,description,about) VALUES ({typeid},'{barcode}',ARRAY {hardskills},ARRAY {softskills},'{description}','{about}') RETURNING ID'''
-    print(query)
+    datapartnersTitle = partnersTitle[0].split(',')
+    datapartnersSalary = partnersSalary[0].split(',')
+    print(datapartnersSalary,datapartnersTitle)
+    print (datapartnersTitle[1])
+    lang=request.headers.get("lang")
+    query = f''' INSERT INTO speciality (specialtyname,typeid,barcode,hardskills,softskills,description,about,language) VALUES ('{specialtyname}',{typeid},'{barcode}',ARRAY {hardskills},ARRAY {softskills},'{description}','{about}','{lang}') RETURNING ID'''
+    # print(query)
     data=db.execute(query).fetchall()
     db.commit()
     id=(data[0]['id'])
@@ -218,8 +227,40 @@ async def createSpecialty(specialtyname :str = Form(...),
             raise HTTPException(status_code=500, detail='Something went wrong')
         finally:
             os.remove(temp.name)
-    query = f'''UPDATE speciality SET photos='{uploadphotoname}',videos='{uploadfilename}' where id ={id};'''
+    partnerImgaeList=[]
+    for a,files in enumerate(partnersImage):  
+        uploadpartnersimage=f'{id}_partnersimage_{datapartnersTitle[a]}'+'.jpeg'
+        partnerImgaeList.append(uploadpartnersimage)
+        print((uploadpartnersimage))
+        temp = NamedTemporaryFile(delete=False)
+        try:
+            try:
+                contents = files.file.read()
+                with temp as f:
+                    f.write(contents)
+            except Exception:
+                raise HTTPException(status_code=500, detail='Error on uploading the file')
+            finally:
+                files.file.close()
+            obj=uploadfile()
+            obj.upload_file(temp.name,'profogapi-stage',uploadfilename,ExtraArgs={'ContentType': "image/jpeg"})
+        except Exception:
+            raise HTTPException(status_code=500, detail='Something went wrong')
+        finally:
+            os.remove(temp.name)
+    print(partnerImgaeList)
+    partnersdata=[]
+    for a,item in enumerate(partnerImgaeList):
+        partnersdata.append({
+            "Image": f'https://profogapi-stage.blr1.digitaloceanspaces.com/profogapi-stage/{item}',
+            "Title": datapartnersTitle[a],
+            "Salary": datapartnersSalary[a]
+        })
+    partnersdata = json.dumps(partnersdata)
+    print((partnersdata) )
+    query = f'''UPDATE speciality SET photos='{uploadphotoname}',videos='{uploadfilename}',partners='{partnersdata}' where id ={id};'''
     print(query)
     db.execute(query)
     db.commit()
-    return {"Msg" : "Speciality created successfully"}
+    return {"ID": id,
+            "Msg" : "Speciality created successfully"}

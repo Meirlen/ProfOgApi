@@ -52,6 +52,7 @@ class Test(Base):
 class Speciality(Base):
     __tablename__ = "speciality"
     id = Column(Integer, primary_key=True, nullable=False)
+    specialtyname = Column(String, nullable=True)
     typeid= Column(Integer, nullable=False)
     photos = Column(String, nullable=True)
     barcode=Column(String ,nullable=False)
@@ -59,7 +60,9 @@ class Speciality(Base):
     softskills = Column(ARRAY(String), nullable=False)
     description=Column(String,nullable=False)
     about=Column(String,nullable=False)
+    language=Column(String,nullable=False)
     videos = Column(String, nullable=True)
+    partners=Column(String,nullable=True)
 
     
 
