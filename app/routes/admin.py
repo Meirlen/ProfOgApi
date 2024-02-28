@@ -183,7 +183,7 @@ async def createSpecialty(request:Request,
     datapartnersSalary = partnersSalary[0].split(',')
     print(datapartnersSalary,datapartnersTitle)
     print (datapartnersTitle[1])
-    lang=request.headers.get("lang")
+    lang="RU"
     query = f''' INSERT INTO speciality (specialtyname,typeid,barcode,hardskills,softskills,description,about,language) VALUES ('{specialtyname}',{typeid},'{barcode}',ARRAY {hardskills},ARRAY {softskills},'{description}','{about}','{lang}') RETURNING ID'''
     # print(query)
     data=db.execute(query).fetchall()
@@ -243,7 +243,7 @@ async def createSpecialty(request:Request,
             finally:
                 files.file.close()
             obj=uploadfile()
-            obj.upload_file(temp.name,'profogapi-stage',uploadfilename,ExtraArgs={'ContentType': "image/jpeg"})
+            obj.upload_file(temp.name,'profogapi-stage',uploadpartnersimage,ExtraArgs={'ContentType': "image/jpeg"})
         except Exception:
             raise HTTPException(status_code=500, detail='Something went wrong')
         finally:
