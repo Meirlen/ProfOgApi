@@ -426,7 +426,8 @@ async def createClient(
         raise HTTPException(status_code=500, detail='Something went wrong')
     finally:
         os.remove(temp.name)
-    query = f'''UPDATE client SET photos='{uploadphotoname}' where id ={id};'''
+    imagelink=f'https://profogapi-stage.blr1.digitaloceanspaces.com/profogapi-stage/{uploadphotoname}'
+    query = f'''UPDATE client SET photos='{imagelink}' where id ={id};'''
     db.execute(query)
     db.commit()
     return {"ID": id,
