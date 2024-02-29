@@ -264,7 +264,7 @@ async def createSpecialty(request:Request,
             "Msg" : "Speciality created successfully"}
 
 @router.post("/createUniversity")
-async def createSpecialty(request:Request,
+async def createUniversity(request:Request,
     universityname :str = Form(...),
     photos: List[UploadFile] = File(...),
     city:str  = Form(...),
