@@ -64,5 +64,17 @@ class Speciality(Base):
     videos = Column(String, nullable=True)
     partners=Column(String,nullable=True)
 
+class University(Base):
+    __tablename__ = "university"
+    id = Column(Integer, primary_key=True, nullable=False)
+    universityname = Column(String, nullable=True)
+    photos = Column(String, nullable=True)
+    city=Column(String ,nullable=False)
+    description=Column(String,nullable=False)
+    about=Column(String,nullable=False)
+    language=Column(String,nullable=False)
+    videos = Column(String, nullable=True)
+    partners=Column(String,nullable=True)
+
     
 

@@ -181,8 +181,6 @@ async def createSpecialty(request:Request,
     db: Session = Depends(database.get_db)):
     datapartnersTitle = partnersTitle[0].split(',')
     datapartnersSalary = partnersSalary[0].split(',')
-    print(datapartnersSalary,datapartnersTitle)
-    print (datapartnersTitle[1])
     lang=request.headers.get("lang")
     query = f''' INSERT INTO speciality (specialtyname,typeid,barcode,hardskills,softskills,description,about,language) VALUES ('{specialtyname}',{typeid},'{barcode}',ARRAY {hardskills},ARRAY {softskills},'{description}','{about}','{lang}') RETURNING ID'''
     # print(query)
@@ -264,3 +262,98 @@ async def createSpecialty(request:Request,
     db.commit()
     return {"ID": id,
             "Msg" : "Speciality created successfully"}
+
+@router.post("/createUniversity")
+async def createSpecialty(request:Request,
+    universityname :str = Form(...),
+    photos: List[UploadFile] = File(...),
+    city:str  = Form(...),
+    description :str  = Form(...),
+    about:str = Form(...),
+    video: List[UploadFile] = File(...),
+    partnersImage: List[UploadFile] = File(...),
+    partnersTitle: List[str] = Form(...),
+    partnersSalary: List[str] = Form(...),
+    db: Session = Depends(database.get_db)):
+    lang=request.headers.get("lang")
+    datapartnersTitle = partnersTitle[0].split(',')
+    datapartnersSalary = partnersSalary[0].split(',')
+    query = f''' INSERT INTO university (universityname,city,description,about,language) VALUES ('{universityname}','{city}','{description}','{about}','{lang}') RETURNING ID'''
+    data=db.execute(query).fetchall()
+    db.commit()
+    id=(data[0]['id'])
+    for files in (photos):  
+        uploadphotoname=f'{id}_universityphoto'+'.jpeg'
+        print((uploadphotoname))
+        temp = NamedTemporaryFile(delete=False)
+        try:
+            try:
+                contents = files.file.read()
+                with temp as f:
+                    f.write(contents)
+            except Exception:
+                raise HTTPException(status_code=500, detail='Error on uploading the file')
+            finally:
+                files.file.close()
+            obj=uploadfile()
+            obj.upload_file(temp.name,'profogapi-stage',uploadphotoname,ExtraArgs={'ContentType': "image/jpeg"})
+        except Exception:
+            raise HTTPException(status_code=500, detail='Something went wrong')
+        finally:
+            os.remove(temp.name)
+    for files in (video):  
+        uploadfilename=f'{id}_universityvideo'+'.mp4'
+        print(type(photos))
+        temp = NamedTemporaryFile(delete=False)
+        try:
+            try:
+                contents = files.file.read()
+                with temp as f:
+                    f.write(contents)
+            except Exception:
+                raise HTTPException(status_code=500, detail='Error on uploading the file')
+            finally:
+                files.file.close()
+            obj=uploadfile()
+            obj.upload_file(temp.name,'profogapi-stage',uploadfilename,ExtraArgs={'ContentType': "image/jpeg"})
+        except Exception:
+            raise HTTPException(status_code=500, detail='Something went wrong')
+        finally:
+            os.remove(temp.name)
+    
+    partnerImgaeList=[]
+    for a,files in enumerate(partnersImage):  
+        uploadpartnersimage=f'{id}_universitypartnersimage_{datapartnersTitle[a]}'+'.jpeg'
+        partnerImgaeList.append(uploadpartnersimage)
+        print((uploadpartnersimage))
+        temp = NamedTemporaryFile(delete=False)
+        try:
+            try:
+                contents = files.file.read()
+                with temp as f:
+                    f.write(contents)
+            except Exception:
+                raise HTTPException(status_code=500, detail='Error on uploading the file')
+            finally:
+                files.file.close()
+            obj=uploadfile()
+            obj.upload_file(temp.name,'profogapi-stage',uploadpartnersimage,ExtraArgs={'ContentType': "image/jpeg"})
+        except Exception:
+            raise HTTPException(status_code=500, detail='Something went wrong')
+        finally:
+            os.remove(temp.name)
+    partnersdata=[]
+    for a,item in enumerate(partnerImgaeList):
+        partnersdata.append({
+            "Image": f'https://profogapi-stage.blr1.digitaloceanspaces.com/profogapi-stage/{item}',
+            "Title": datapartnersTitle[a],
+            "Salary": datapartnersSalary[a]
+        })
+    partnersdata = json.dumps(partnersdata)
+    print((partnersdata) )
+    query = f'''UPDATE university SET photos='{uploadphotoname}',videos='{uploadfilename}',partners='{partnersdata}' where id ={id};'''
+    print(query)
+    db.execute(query)
+    db.commit()
+    return {"ID": id,
+            "Msg" : "University created successfully"}
