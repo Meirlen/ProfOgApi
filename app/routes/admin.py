@@ -7,7 +7,7 @@ from .. models import table
 import os
 import string
 from fastapi import Request
-from typing import List,Dict
+from typing import List,Optional
 from .. utils.uploadfiletospaces import uploadfile
 from fastapi import File, UploadFile,Form
 from tempfile import NamedTemporaryFile
@@ -268,6 +268,7 @@ async def createUniversity(request:Request,
     universityname :str = Form(...),
     photos: List[UploadFile] = File(...),
     city:str  = Form(...),
+    grant: Optional[str]= Form(None),
     description :str  = Form(...),
     about:str = Form(...),
     video: List[UploadFile] = File(...),
@@ -278,7 +279,10 @@ async def createUniversity(request:Request,
     lang=request.headers.get("lang")
     datapartnersTitle = partnersTitle[0].split(',')
     datapartnersSalary = partnersSalary[0].split(',')
-    query = f''' INSERT INTO university (universityname,city,description,about,language) VALUES ('{universityname}','{city}','{description}','{about}','{lang}') RETURNING ID'''
+    if grant != '':
+        query = f''' INSERT INTO university (universityname,city,description,about,language,grantdata) VALUES ('{universityname}','{city}','{description}','{about}','{lang}','{grant}') RETURNING ID'''
+    else:
+        query = f''' INSERT INTO university (universityname,city,description,about,language) VALUES ('{universityname}','{city}','{description}','{about}','{lang}') RETURNING ID'''
     data=db.execute(query).fetchall()
     db.commit()
     id=(data[0]['id'])
@@ -357,3 +361,36 @@ async def createUniversity(request:Request,
     db.commit()
     return {"ID": id,
             "Msg" : "University created successfully"}
+
+
+@router.get("/getUniversityById")
+async def getUniversityById(id:int,db: Session = Depends(database.get_db)):
+    result=[]
+    query = f'''SELECT * FROM university where id = {id}'''
+    query_data_result=db.execute(query).fetchall()
+    for item in query_data_result:
+        result.append({
+            "id": item[0],
+            "universityname":item[1],
+            "photos":item[2],
+            "city":item[3],
+            "description":item[4],
+            "about":item[5],
+            "language":item[6],
+            "videos":item[7],
+            "partners":item[8],
+            "grantdata":item[9]
+        })
+    return result
+
+@router.get("/getAllUniversity")
+async def getAllUniversity(db: Session = Depends(database.get_db)):
+    result=[]
+    query = f'''SELECT id,universityname FROM university '''
+    query_data_result=db.execute(query).fetchall()
+    for item in query_data_result:
+        result.append({
+            "id": item[0],
+            "universityname":item[1],
+        })
+    return result
