@@ -394,3 +394,64 @@ async def getAllUniversity(db: Session = Depends(database.get_db)):
             "universityname":item[1],
         })
     return result
+
+@router.post("/createClient")
+async def createClient(
+    universityname :str = Form(...),
+    photos: UploadFile = File(...),
+    BIN:str  = Form(...),
+    email: str= Form(...),
+    reservePhone :str  = Form(...),
+    password:str = Form(...),
+    db: Session = Depends(database.get_db)):
+    query = f'''INSERT INTO client (universityname,bin,email,reservephone,password) VALUES ('{universityname}','{BIN}','{email}','{reservePhone}','{password}') RETURNING ID ;'''
+    data=db.execute(query).fetchall()
+    db.commit()
+    id=(data[0]['id'])
+    uploadphotoname=f'{id}_client'+'.jpeg'
+    print((uploadphotoname))
+    temp = NamedTemporaryFile(delete=False)
+    try:
+        try:
+            contents = photos.file.read()
+            with temp as f:
+                f.write(contents)
+        except Exception:
+            raise HTTPException(status_code=500, detail='Error on uploading the file')
+        finally:
+            photos.file.close()
+        obj=uploadfile()
+        obj.upload_file(temp.name,'profogapi-stage',uploadphotoname,ExtraArgs={'ContentType': "image/jpeg"})
+    except Exception:
+        raise HTTPException(status_code=500, detail='Something went wrong')
+    finally:
+        os.remove(temp.name)
+    query = f'''UPDATE client SET photos='{uploadphotoname}' where id ={id};'''
+    db.execute(query)
+    db.commit()
+    return {"ID": id,
+            "Msg" : "Client created successfully"}
+
+@router.get("/getAllClient")
+async def getAllClient(page:int,db: Session = Depends(database.get_db)):
+    result=[]
+    limit =20
+    offset = (limit*page) - limit
+    lengthquery = f'''SELECT * FROM client'''
+    lengthquerydata= db.execute(lengthquery).fetchall()
+    result.append({
+        "Total Registered Users": len(lengthquerydata)
+    })
+    query = f'''SELECT * FROM client LIMIT {limit} OFFSET {offset} '''
+    query_data_result=db.execute(query).fetchall()
+    for item in query_data_result:
+        result.append({
+            "id": item[0],
+            "universityname":item[1],
+            "photos":item[2],
+            "bin":item[3],
+            "email":item[4],
+            "reservephone":item[5],
+            "password":item[6]
+        })
+    return result

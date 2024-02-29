@@ -76,5 +76,15 @@ class University(Base):
     videos = Column(String, nullable=True)
     partners=Column(String,nullable=True)
 
+class Client(Base):
+    __tablename__ = "client"
+    id = Column(Integer, primary_key=True, nullable=False)
+    universityname = Column(String, nullable=False)
+    photos = Column(String, nullable=True)
+    bin=Column(String ,nullable=False)
+    email=Column(String,nullable=False)
+    reservephone=Column(String,nullable=False)
+    password=Column(String,nullable=False)
+
     
 
