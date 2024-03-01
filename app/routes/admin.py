@@ -456,3 +456,10 @@ async def getAllClient(page:int,db: Session = Depends(database.get_db)):
             "password":item[6]
         })
     return result
+
+@router.post("/deleteClientById")
+async def deleteClientById(param:input.DeleteClient,db: Session = Depends(database.get_db)):
+    query = f'''DELETE FROM client where id={param.id} '''
+    db.execute(query)
+    db.commit()
+    return {"Msg" : "Client Deleted successfully"}
