@@ -405,8 +405,9 @@ async def createClient(
     email: str= Form(...),
     reservePhone :str  = Form(...),
     password:str = Form(...),
+    universityid:int = Form(...),
     db: Session = Depends(database.get_db)):
-    query = f'''INSERT INTO client (universityname,bin,email,reservephone,password) VALUES ('{universityname}','{BIN}','{email}','{reservePhone}','{password}') RETURNING ID ;'''
+    query = f'''INSERT INTO client (universityname,bin,email,reservephone,password,universityid) VALUES ('{universityname}','{BIN}','{email}','{reservePhone}','{password}',{universityid}) RETURNING ID ;'''
     data=db.execute(query).fetchall()
     db.commit()
     id=(data[0]['id'])
@@ -455,7 +456,8 @@ async def getAllClient(page:int,db: Session = Depends(database.get_db)):
             "bin":item[3],
             "email":item[4],
             "reservephone":item[5],
-            "password":item[6]
+            "password":item[6],
+            "universityid":item[7]
         })
     return result
 

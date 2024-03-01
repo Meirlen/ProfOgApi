@@ -85,6 +85,7 @@ class Client(Base):
     email=Column(String,nullable=False)
     reservephone=Column(String,nullable=False)
     password=Column(String,nullable=False)
+    universityid=Column(String ,nullable=False)
 
     
 
