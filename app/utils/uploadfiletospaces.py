@@ -7,8 +7,16 @@ SecretKey="XhHsVcCRiUMzVXpNQwTin/+6Py6AN0FtiE17lYe4NQM"
 def uploadfile():
     s3=boto3.client(
         's3',
-        region_name='blr1',
         endpoint_url=f'https://profogapi-stage.blr1.digitaloceanspaces.com',
+        aws_access_key_id=ACCESSKEY,
+        aws_secret_access_key=SecretKey
+    )
+    return s3
+
+def deletefile():
+    s3=boto3.client(
+        's3',
+        endpoint_url=f'https://blr1.digitaloceanspaces.com',
         aws_access_key_id=ACCESSKEY,
         aws_secret_access_key=SecretKey
     )

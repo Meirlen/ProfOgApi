@@ -8,9 +8,11 @@ import os
 import string
 from fastapi import Request
 from typing import List,Optional
-from .. utils.uploadfiletospaces import uploadfile
+from .. utils.uploadfiletospaces import uploadfile,deletefile
 from fastapi import File, UploadFile,Form
 from tempfile import NamedTemporaryFile
+from urllib.parse import urlparse
+
 
 router = APIRouter(tags=['admin'])
 
@@ -459,7 +461,14 @@ async def getAllClient(page:int,db: Session = Depends(database.get_db)):
 
 @router.post("/deleteClientById")
 async def deleteClientById(param:input.DeleteClient,db: Session = Depends(database.get_db)):
-    query = f'''DELETE FROM client where id={param.id} '''
-    db.execute(query)
+    query= f''' SELECT photos FROM client where id={param.id}'''
+    queryresult=db.execute(query).fetchall()
+    filename=f'''{queryresult[0]['photos']}'''
+    parsed_url = urlparse(filename)
+    object_key = parsed_url.path.lstrip('/')
+    s3=deletefile()
+    response=s3.delete_object(Bucket='profogapi-stage',Key=object_key)
+    deletequery = f'''DELETE FROM client where id={param.id} '''
+    db.execute(deletequery)
     db.commit()
     return {"Msg" : "Client Deleted successfully"}
