@@ -474,3 +474,37 @@ async def deleteClientById(param:input.DeleteClient,db: Session = Depends(databa
     db.execute(deletequery)
     db.commit()
     return {"Msg" : "Client Deleted successfully"}
+
+@router.get("/getAllType")
+async def getAllType(db: Session = Depends(database.get_db)):
+    result=[]
+    query = f'''SELECT * FROM type'''
+    query_data_result=db.execute(query).fetchall()
+    for item in query_data_result:
+        result.append({
+            "id": item[0],
+            "type":item[1]
+        })
+
+    return result
+
+
+@router.get("/getSpeciality")
+async def getSpeciality(typeid:int,db: Session = Depends(database.get_db)):
+    result=[]
+    query = f'''SELECT id,specialtyname FROM speciality where typeid={typeid};'''
+    query_data_result=db.execute(query).fetchall()
+    for item in query_data_result:
+        result.append({
+            "id": item[0],
+            "specialtyname":item[1]
+        })
+
+    return result
+
+@router.post("/deleteSpeciality")
+async def deleteSpeciality(param:input.DeleteSpeciality,db: Session = Depends(database.get_db)):
+    query = f'''DELETE FROM speciality where id={param.id};'''
+    db.execute(query)
+    db.commit()
+    return {"Msg" : "speciality Deleted successfully"}
