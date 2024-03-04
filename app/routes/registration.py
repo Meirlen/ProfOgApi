@@ -9,7 +9,7 @@ from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from .. utils.sendmail import *
 from .. utils.sendsms import *
 from datetime import datetime
-
+from .. utils.oauth import create_access_token,get_user
 
 router = APIRouter(tags=['Login'])
 
@@ -64,7 +64,13 @@ async def login(param: input.login,db: Session = Depends(database.get_db)):
     query = f'''SELECT password from registration WHERE phonenumber='{param.phoneNumber}';'''
     data = db.execute(query).fetchall()
     if param.password == ((data[0])['password']):
-        return {"code": 200, "Message" : "Logged in Successfully"}
+        access_token = create_access_token(data={"user_phone": param.phoneNumber})
+        return {"code": 200, 
+                "Message" : "Logged in Successfully",
+                "data":{
+                    "token": access_token,
+                    "token_type":"bearer"
+                }}
     else :
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Invalid Credentials")
     
@@ -112,3 +118,41 @@ async def resend_email_otp(param:input.ResendEmailOtp,background_tasks:Backgroun
     db.commit()
     background_tasks.add_task(send_in_background,email_otp,param.email,background_tasks)
     return {"code":200,"Message": "Code sended"}
+
+@router.post("/superadminlogin")
+async def superadminlogin(param: input.superadminlogin,db: Session = Depends(database.get_db)):
+    user = db.query(table.SuperAdmin).filter(table.SuperAdmin.username == param.username).first()
+    if not user:
+        return {"message": "Super admin is not available"}
+    else :
+        query = f'''SELECT password from superadmin WHERE username='{param.username}';'''
+        data = db.execute(query).fetchall()
+        if param.password == ((data[0])['password']):
+            access_token = create_access_token(data={"user_phone": param.username})
+            return {"code": 200, 
+                    "Message" : "Logged in Successfully",
+                    "data":{
+                        "token": access_token,
+                        "token_type":"bearer"
+                    }}
+        else :
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Invalid Credentials")
+
+@router.post("/clientlogin")
+async def clientlogin(param: input.clientlogin,db: Session = Depends(database.get_db)):
+    user = db.query(table.Client).filter(table.Client.email == param.email).first()
+    if not user:
+        return {"message": "Client is not available"}
+    else :
+        query = f'''SELECT password from client WHERE email='{param.email}';'''
+        data = db.execute(query).fetchall()
+        if param.password == ((data[0])['password']):
+            access_token = create_access_token(data={"user_phone": param.email})
+            return {"code": 200, 
+                    "Message" : "Logged in Successfully",
+                    "data":{
+                        "token": access_token,
+                        "token_type":"bearer"
+                    }}
+        else :
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Invalid Credentials")

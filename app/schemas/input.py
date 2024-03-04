@@ -26,6 +26,14 @@ class login(BaseModel):
     phoneNumber:int
     password:str
 
+class superadminlogin(BaseModel):
+    username:str
+    password:str
+
+class clientlogin(BaseModel):
+    email:str
+    password:str
+
 class PasswordRecovery(BaseModel):
     email:str
 

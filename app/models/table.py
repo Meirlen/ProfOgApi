@@ -87,5 +87,10 @@ class Client(Base):
     password=Column(String,nullable=False)
     universityid=Column(String ,nullable=False)
 
+class SuperAdmin(Base):
+    __tablename__ = "superadmin"
+    id = Column(Integer, primary_key=True, nullable=False)
+    username = Column(String, nullable=False)
+    password = Column(String, nullable=False)
     
 
