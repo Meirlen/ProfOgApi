@@ -5,7 +5,6 @@ from typing import Optional
 class Registration(BaseModel):
     firstName:str
     lastName:str
-    password:str
     phoneNumber:str
     email:str
     region:str
@@ -18,16 +17,18 @@ class Registration(BaseModel):
 class VerfiyMobileOtp(BaseModel):
     otp:int
     phoneNumber:int
+class VerfiyMobilLogineOtp(BaseModel):
+    otp:int
+
 class VerifyEmailOtp(BaseModel):
     email:str
     otp:str
 
 class login(BaseModel):
-    phoneNumber:int
-    password:str
+    phoneNumber:str
 
 class superadminlogin(BaseModel):
-    username:str
+    email:str
     password:str
 
 class clientlogin(BaseModel):

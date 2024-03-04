@@ -9,7 +9,7 @@ from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from .. utils.sendmail import *
 from .. utils.sendsms import *
 from datetime import datetime
-from .. utils.oauth import create_access_token,get_user
+from .. utils.oauth import create_access_token,get_user,create_access_token_for_otp
 
 router = APIRouter(tags=['Login'])
 
@@ -30,7 +30,7 @@ async def registration (param: input.Registration,background_tasks: BackgroundTa
         db.commit()
         background_tasks.add_task(send_in_background,str(email_otp),param.email,background_tasks)
         background_tasks.add_task(send_sms,phone_otp,str(param.phoneNumber))
-        query=f'''INSERT INTO registration (firstName,lastName,password,phoneNumber,email,region,locality,district,school,classType,classStream,created_at) VALUES ('{param.firstName}','{param.lastName}','{param.password}','{param.phoneNumber}','{param.email}','{param.region}','{param.locality}','{param.district}','{param.school}','{param.classType}','{param.classStream}','{datetime.now()}');'''
+        query=f'''INSERT INTO registration (firstName,lastName,phoneNumber,email,region,locality,district,school,classType,classStream,created_at) VALUES ('{param.firstName}','{param.lastName}','{param.phoneNumber}','{param.email}','{param.region}','{param.locality}','{param.district}','{param.school}','{param.classType}','{param.classStream}','{datetime.now()}');'''
         db.execute(query)
         db.commit()
         return {"code":200,"Message": "Code sended"}
@@ -60,20 +60,50 @@ async def verify_email_otp(param: input.VerifyEmailOtp,db: Session = Depends(dat
 
     
 @router.post("/login")
-async def login(param: input.login,db: Session = Depends(database.get_db)):
-    query = f'''SELECT password from registration WHERE phonenumber='{param.phoneNumber}';'''
-    data = db.execute(query).fetchall()
-    if param.password == ((data[0])['password']):
-        access_token = create_access_token(data={"user_phone": param.phoneNumber})
-        return {"code": 200, 
-                "Message" : "Logged in Successfully",
-                "data":{
-                    "token": access_token,
-                    "token_type":"bearer"
-                }}
+async def login(param: input.login,background_tasks:BackgroundTasks,db: Session = Depends(database.get_db)):
+    user = db.query(table.Registration.phonenumber).filter(table.Registration.phonenumber == param.phoneNumber).first()
+    if not user:
+        return {
+            "message": "User is not available, please register"
+        }
     else :
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Invalid Credentials")
+        phone_otp = str(random.randint(100000,999999))
+        mobile_otp_data = db.query(table.MobileOtp).filter(table.MobileOtp.phone_number ==param.phoneNumber)
+        mobile_otp_data.update({"code": phone_otp} ,synchronize_session=False)
+        db.commit()
+        background_tasks.add_task(send_sms,phone_otp,str(param.phoneNumber))        
+        access_token = create_access_token_for_otp(data={"user_phone": param.phoneNumber})
+        return {"code": 200, 
+                "Message" : "OTP send successfully",
+                "data":{
+                        "token": access_token,
+                        "token_type":"bearer"}}
+        
+@router.post("/verify_mobile_login_otp")
+async def verify_mobile_otp(param: input.VerfiyMobilLogineOtp,db: Session = Depends(database.get_db), current_user=Depends(get_user)):
+    query = f'''SELECT code from mobile_otps WHERE phone_number={current_user};'''
+    data = db.execute(query).fetchall()
+    print (param.otp,(data[0])['code'])
+    if str(param.otp)==((data[0])['code']):
+        print (True)
+        access_token = create_access_token(data={"user_phone": current_user})
+        return {"code": 200,
+                "Message" : "OTP verified successfully",
+                "data":{
+                        "token": access_token,
+                        "token_type":"bearer"}}
+    else :
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Invalid OTP")  
     
+@router.post("/resend_mobile_otp_login")
+async def resend_mobile_otp_login(background_tasks:BackgroundTasks,db: Session = Depends(database.get_db),current_user=Depends(get_user)):
+    print(current_user)
+    phone_otp = str(random.randint(100000,999999))
+    mobile_otp_data = db.query(table.MobileOtp).filter(table.MobileOtp.phone_number ==current_user)
+    mobile_otp_data.update({"code": phone_otp} ,synchronize_session=False)
+    db.commit()
+    background_tasks.add_task(send_sms,phone_otp,str(current_user))
+    return {"code":200,"Message": "Code sended"}
 @router.post("/password_recovery")
 async def password_recovery(param:input.PasswordRecovery,background_tasks:BackgroundTasks,db: Session = Depends(database.get_db)):
     user = db.query(table.Registration).filter(table.Registration.email == param.email).first() 
@@ -121,14 +151,14 @@ async def resend_email_otp(param:input.ResendEmailOtp,background_tasks:Backgroun
 
 @router.post("/superadminlogin")
 async def superadminlogin(param: input.superadminlogin,db: Session = Depends(database.get_db)):
-    user = db.query(table.SuperAdmin).filter(table.SuperAdmin.username == param.username).first()
+    user = db.query(table.SuperAdmin).filter(table.SuperAdmin.email == param.email).first()
     if not user:
         return {"message": "Super admin is not available"}
     else :
-        query = f'''SELECT password from superadmin WHERE username='{param.username}';'''
+        query = f'''SELECT password from superadmin WHERE email='{param.email}';'''
         data = db.execute(query).fetchall()
         if param.password == ((data[0])['password']):
-            access_token = create_access_token(data={"user_phone": param.username})
+            access_token = create_access_token(data={"user_phone": param.email})
             return {"code": 200, 
                     "Message" : "Logged in Successfully",
                     "data":{

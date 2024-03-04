@@ -9,7 +9,6 @@ class Registration(Base):
     id = Column(Integer, primary_key=True, nullable=False)
     firstname = Column(String,nullable=False)
     lastname = Column(String,nullable=False)
-    password = Column(String,nullable=False)
     phonenumber = Column(String,nullable=False)
     email= Column(String,nullable=False)
     region = Column(String,nullable=True)
@@ -18,6 +17,9 @@ class Registration(Base):
     school = Column(String,nullable=True)
     classtype = Column(String,nullable=True)
     classstream = Column(String,nullable=True)
+    test = Column(String,nullable=True)
+    university = Column(String,nullable=True)
+    speciality = Column(String,nullable=True)
     created_at = Column(TIMESTAMP(timezone=True),
                         nullable=False, server_default=text('now()')) 
 
@@ -90,7 +92,7 @@ class Client(Base):
 class SuperAdmin(Base):
     __tablename__ = "superadmin"
     id = Column(Integer, primary_key=True, nullable=False)
-    username = Column(String, nullable=False)
+    email = Column(String, nullable=False)
     password = Column(String, nullable=False)
     
 

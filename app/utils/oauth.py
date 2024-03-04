@@ -8,9 +8,19 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
 SECRET_KEY = "ProfOgAPI"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 1440
-
+ACCESS_TOKEN_EXPIRE_MINUTES_FOR_OTP=300
 
 def create_access_token(data: dict,exp_date = ACCESS_TOKEN_EXPIRE_MINUTES):
+    to_encode = data.copy()
+
+    expire = datetime.utcnow() + timedelta(minutes=exp_date)
+    to_encode.update({"exp": expire})
+
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    print(encoded_jwt)
+    return encoded_jwt
+
+def create_access_token_for_otp(data: dict,exp_date = ACCESS_TOKEN_EXPIRE_MINUTES_FOR_OTP):
     to_encode = data.copy()
 
     expire = datetime.utcnow() + timedelta(minutes=exp_date)
