@@ -70,7 +70,7 @@ async def createType(param:input.CreateType,db: Session = Depends(database.get_d
     db.add(query)
     db.commit()
     db.refresh(query)
-    query_data = f'''SELECT * FROM type WHERE type = '{param.type}';'''
+    query_data = f'''SELECT * FROM type WHERE id = {query.id};'''
     query_data_result=db.execute(query_data).fetchall()
     for item in query_data_result:
         result.append({
@@ -88,7 +88,8 @@ async def createTestTitle(request:Request,param:input.CreateTitle,db: Session = 
     db.add(query)
     db.commit()
     db.refresh(query)
-    query_data = f'''SELECT * FROM test WHERE typeid={param.typeid} AND title='{param.Title}';'''
+    print(query.id)
+    query_data = f'''SELECT * FROM test WHERE id={query.id} ;'''
     query_data_result=db.execute(query_data).fetchall()
     for item in query_data_result:
         result.append({
@@ -165,6 +166,14 @@ async def deleteType(param:input.DeleteType,db: Session = Depends(database.get_d
     db.execute(query)
     db.commit()
     return {"Msg" : "Type Deleted successfully"}
+
+@router.post("/deleteTest")
+async def deleteTest(param:input.DeleteTest,db: Session = Depends(database.get_db)):
+    query = f'''DELETE FROM test where id={param.id};'''
+    print(query)
+    db.execute(query)
+    db.commit()
+    return {"Msg" : "Test Deleted successfully"}
 import json
 @router.post("/createSpecialty")
 async def createSpecialty(request:Request,

@@ -62,6 +62,9 @@ class UpdateType(BaseModel):
 class DeleteType(BaseModel):
     id:int
 
+class DeleteTest(BaseModel):
+    id:int
+
 class DeleteClient(BaseModel):
     id:int
 
