@@ -30,6 +30,16 @@ def create_access_token_for_otp(data: dict,exp_date = ACCESS_TOKEN_EXPIRE_MINUTE
     print(encoded_jwt)
     return encoded_jwt
 
+def create_access_token_for_registration(data: dict,exp_date = ACCESS_TOKEN_EXPIRE_MINUTES_FOR_OTP):
+    to_encode = data.copy()
+
+    expire = datetime.utcnow() + timedelta(minutes=exp_date)
+    to_encode.update({"exp": expire})
+
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    print(encoded_jwt)
+    return encoded_jwt
+
 def get_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                           detail=f"Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
@@ -45,3 +55,15 @@ def get_user(token: str = Depends(oauth2_scheme)):
         raise credentials_exception
 
     return id
+
+def get_data(token: str = Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                                          detail=f"Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
+    try:
+
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        # token_data = schemas.TokenData(id=id)
+    except JWTError:
+        raise credentials_exception
+
+    return payload

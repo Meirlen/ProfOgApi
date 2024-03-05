@@ -16,12 +16,10 @@ class Registration(BaseModel):
 
 class VerfiyMobileOtp(BaseModel):
     otp:int
-    phoneNumber:int
 class VerfiyMobilLogineOtp(BaseModel):
     otp:int
 
 class VerifyEmailOtp(BaseModel):
-    email:str
     otp:str
 
 class login(BaseModel):
@@ -42,11 +40,6 @@ class UpdatePassword(BaseModel):
     password:str
     email:str
 
-class ResendMobileOtp(BaseModel):
-    phoneNumber:int
-
-class ResendEmailOtp(BaseModel):
-    email:str
 
 class CountUserOnEachDay(BaseModel):
     from_date: date
