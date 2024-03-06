@@ -14,6 +14,8 @@ from tempfile import NamedTemporaryFile
 from urllib.parse import urlparse
 from .. utils.oauth import get_user,get_current_token
 import random
+from datetime import datetime
+
 
 router = APIRouter(tags=['admin'])
 
@@ -611,3 +613,25 @@ async def deleteTypeDescription(param:input.DeleteTypeDescription,db: Session = 
     db.execute(query)
     db.commit()
     return {"Msg" : "Type Description Deleted successfully"}
+
+@router.post("/testComplete")
+async def testComplete(param:input.TestComplete,db: Session = Depends(database.get_db),current_user=Depends(get_user)):
+    user=db.query(table.TestComplete).filter(table.TestComplete.phone_number == current_user).first()
+    if not user:
+        query= f'''INSERT INTO testcomplete (phone_number,maintypeid,numberofpointsmaintype,additionaltypeid,numberofpointsadditionaltype,created_at) VALUES ({current_user},{param.mainTypeId},{param.numberOfPointsMainType},{param.additionalTypeId},{param.numberOfPointsadditionalType},'{datetime.now()}') RETURNING ID;'''
+        data=db.execute(query).fetchall()
+        db.commit()
+        id=(data[0]['id'])
+        registration_query= f'''UPDATE registration SET test='{param.mainTypeId}' where phonenumber='{current_user}' ;'''
+        db.execute(registration_query)
+        db.commit()
+        return {"id":id,
+                "Msg" : "Test complete added successfully"}
+    else :
+        query = f'''UPDATE testcomplete SET maintypeid={param.mainTypeId}, numberofpointsmaintype={param.numberOfPointsMainType}, additionaltypeid={param.additionalTypeId}, numberofpointsadditionaltype={param.numberOfPointsadditionalType},created_at='{datetime.now()}' where phone_number={current_user}; '''
+        db.execute(query)
+        db.commit()
+        registration_query= f'''UPDATE registration SET test='{param.mainTypeId}' where phonenumber='{current_user}' ;'''
+        db.execute(registration_query)
+        db.commit()
+        return {"Msg" : "Test complete updated successfully"}

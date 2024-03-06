@@ -108,3 +108,14 @@ class TypeDescription(Base):
     typeid = Column(Integer, nullable=False)
     description = Column(String, nullable=False)
     lang = Column(String, nullable=False)
+
+class TestComplete(Base):
+    __tablename__ ="testcomplete"
+    id = Column(Integer, primary_key=True, nullable=False)
+    phone_number = Column(BIGINT, nullable=False)
+    maintypeid = Column(Integer, nullable=False)
+    numberofpointsmaintype = Column(Integer, nullable=False)
+    additionaltypeid = Column(Integer, nullable=False)
+    numberofpointsadditionaltype = Column(Integer, nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True),
+                        nullable=False, server_default=text('now()'))

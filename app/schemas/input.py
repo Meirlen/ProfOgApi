@@ -79,3 +79,9 @@ class CreateTypeDescription(BaseModel):
 
 class DeleteTypeDescription(BaseModel):
     id:int
+
+class TestComplete(BaseModel):
+    mainTypeId:int
+    numberOfPointsMainType:int
+    additionalTypeId:int
+    numberOfPointsadditionalType:int
