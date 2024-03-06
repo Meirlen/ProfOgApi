@@ -12,7 +12,8 @@ from .. utils.uploadfiletospaces import uploadfile,deletefile
 from fastapi import File, UploadFile,Form
 from tempfile import NamedTemporaryFile
 from urllib.parse import urlparse
-
+from .. utils.oauth import get_user,get_current_token
+import random
 
 router = APIRouter(tags=['admin'])
 
@@ -517,3 +518,54 @@ async def deleteSpeciality(param:input.DeleteSpeciality,db: Session = Depends(da
     db.execute(query)
     db.commit()
     return {"Msg" : "speciality Deleted successfully"}
+
+@router.post("/returnTest")
+async def returnTest(db: Session = Depends(database.get_db), current_user=Depends(get_user),current_token: str = Depends(get_current_token)):
+    user = db.query(table.StoringTestForUser).filter(table.StoringTestForUser.phonenumber == current_user).first()
+    testdata=[]
+    if not user:
+        print('first block ')
+        test=[3,4,6,7,8,9,10,11,12]
+        for i in test:
+            query = f'''SELECT * FROM test where typeid={i};'''
+            #print(query)
+            data = db.execute(query).fetchall()
+            n=random.sample(range(0,(len(data))),5) 
+            print(n)
+            for a in n :
+                testdata.append({
+                    "typeid": i,
+                    "question": (data[a])['title']
+                })
+        test=json.dumps(testdata, ensure_ascii=False)
+        query= f''' INSERT INTO storingtestforuser (phonenumber,token,question) VALUES('{current_user}','{current_token}', '{test}');'''
+        db.execute(query)
+        db.commit()   
+    elif user.phonenumber == current_user and user.token == current_token:
+        print('elif')
+        query = f''' SELECT question FROM storingtestforuser;'''
+        data=db.execute(query).fetchall()
+        testdata=((data[0])['question'])
+        testdata = json.loads(testdata)
+        # result_list=result.split('"')
+        # # print(testdata)
+        # testdata = [s for s in result_list if s.strip() and s != '{' and s != '}' and s != ',']
+    elif user.phonenumber == current_user and user.token != current_token:
+        print('last')
+        test=[3,4,6,7,8,9,10,11,12]
+        for i in test:
+            query = f'''SELECT * FROM test where typeid={i};'''
+            #print(query)
+            data = db.execute(query).fetchall()
+            n=random.sample(range(0,(len(data))),5) 
+            print(n)
+            for a in n :
+                testdata.append({
+                    "typeid": i,
+                    "question": (data[a])['title']
+                })
+        test=json.dumps(testdata, ensure_ascii=False)
+        query= f''' UPDATE storingtestforuser SET token = '{current_token}' , question =  '{test}' WHERE phonenumber = '{current_user}'; '''
+        db.execute(query)
+        db.commit()
+    return testdata

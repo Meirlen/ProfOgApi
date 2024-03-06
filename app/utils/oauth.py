@@ -67,3 +67,6 @@ def get_data(token: str = Depends(oauth2_scheme)):
         raise credentials_exception
 
     return payload
+
+def get_current_token(token: str = Depends(oauth2_scheme)):
+    return token

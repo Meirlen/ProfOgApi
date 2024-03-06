@@ -95,4 +95,9 @@ class SuperAdmin(Base):
     email = Column(String, nullable=False)
     password = Column(String, nullable=False)
     
-
+class StoringTestForUser(Base):
+    __tablename__ ="storingtestforuser"
+    id = Column(Integer, primary_key=True, nullable=False)
+    phonenumber = Column(String, nullable=False)
+    token = Column(String, nullable=False)
+    question = Column(String, nullable=False)
