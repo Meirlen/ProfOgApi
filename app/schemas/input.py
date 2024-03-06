@@ -72,3 +72,10 @@ class DeleteClient(BaseModel):
 
 class DeleteSpeciality(BaseModel):
     id:int
+
+class CreateTypeDescription(BaseModel):
+    typeid:int
+    description:str
+
+class DeleteTypeDescription(BaseModel):
+    id:int

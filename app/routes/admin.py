@@ -569,3 +569,45 @@ async def returnTest(db: Session = Depends(database.get_db), current_user=Depend
         db.execute(query)
         db.commit()
     return testdata
+
+@router.post("/createTypeDescription")
+async def createTypeDescription(request:Request,param:input.CreateTypeDescription,db: Session = Depends(database.get_db)):
+    lang=request.headers.get("lang")
+    result=[]
+    query = f'''INSERT INTO typedescription (typeid,description,lang) VALUES ({param.typeid},'{param.description}','{lang}') RETURNING ID ;'''
+    data=db.execute(query).fetchall()
+    db.commit()
+    id=(data[0]['id'])
+    query_data = f'''SELECT * FROM typedescription WHERE id={id} ;'''
+    query_data_result=db.execute(query_data).fetchall()
+    for item in query_data_result:
+        result.append({
+            "id":item[0],
+            "typeid": item[1],
+            "description":item[2],
+            "language":item[3]
+        })
+
+    return result
+
+@router.get("/getTypeDescription")
+async def getTypeDescription(typeid:int,db: Session = Depends(database.get_db)):
+    result=[]
+    query = f'''SELECT * FROM typedescription where typeid={typeid};'''
+    query_data_result=db.execute(query).fetchall()
+    for item in query_data_result:
+        result.append({
+            "id":item[0],
+            "typeid": item[1],
+            "description":item[2],
+            "language":item[3]
+        })
+
+    return result
+
+@router.post("/deleteTypeDescription")
+async def deleteTypeDescription(param:input.DeleteTypeDescription,db: Session = Depends(database.get_db)):
+    query = f'''DELETE FROM typedescription where id={param.id};'''
+    db.execute(query)
+    db.commit()
+    return {"Msg" : "Type Description Deleted successfully"}

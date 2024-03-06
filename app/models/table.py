@@ -101,3 +101,10 @@ class StoringTestForUser(Base):
     phonenumber = Column(String, nullable=False)
     token = Column(String, nullable=False)
     question = Column(String, nullable=False)
+
+class TypeDescription(Base):
+    __tablename__ ="typedescription"
+    id = Column(Integer, primary_key=True, nullable=False)
+    typeid = Column(Integer, nullable=False)
+    description = Column(String, nullable=False)
+    lang = Column(String, nullable=False)
