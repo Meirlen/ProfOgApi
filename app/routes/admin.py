@@ -635,3 +635,23 @@ async def testComplete(param:input.TestComplete,db: Session = Depends(database.g
         db.execute(registration_query)
         db.commit()
         return {"Msg" : "Test complete updated successfully"}
+    
+
+@router.get("/getTestResults")
+async def getTestResults(db: Session = Depends(database.get_db),current_user=Depends(get_user)):
+    result=[]
+    query = f'''WITH RECURSIVE cte AS (SELECT phone_number,maintypeid,numberofpointsmaintype,additionaltypeid,numberofpointsadditionaltype FROM testcomplete where phone_number={current_user}) ,maintypename AS (SELECT type,phone_number FROM type JOIN testcomplete ON testcomplete.maintypeid=type.id where testcomplete.phone_number={current_user}) , additionaltypename AS (SELECT type,phone_number FROM type JOIN testcomplete ON testcomplete.additionaltypeid=type.id where testcomplete.phone_number={current_user}), maindescription AS (SELECT description, phone_number FROM typedescription JOIN testcomplete ON testcomplete.maintypeid=typedescription.typeid where phone_number={current_user} ), additionaldescription AS (SELECT description, phone_number FROM typedescription JOIN testcomplete ON testcomplete.additionaltypeid=typedescription.typeid where phone_number={current_user}) SELECT cte.maintypeid as maintypeid, cte.additionaltypeid as additionaltypeid, cte.numberofpointsmaintype as mainpoints, cte.numberofpointsadditionaltype as additionalpoints, maintypename.type as maintypename, additionaltypename.type as additionaltypename, maindescription.description as maindescription, additionaldescription.description as additionaldescription FROM cte JOIN maintypename ON cte.phone_number=maintypename.phone_number JOIN additionaltypename ON maintypename.phone_number=additionaltypename.phone_number JOIN maindescription ON additionaltypename.phone_number=maindescription.phone_number JOIN additionaldescription ON maindescription.phone_number=additionaldescription.phone_number; '''
+    query_data_result=db.execute(query).fetchall()
+    for item in query_data_result:
+        result.append({
+            "maintypeid":item[0],
+            "additionaltypeid": item[1],
+            "mainpoints":item[2],
+            "additionalpoints":item[3],
+            "maintypename":item[4],
+            "additionaltypename": item[5],
+            "maindescription":item[6],
+            "additionaldescription":item[7]
+        })
+
+    return result
