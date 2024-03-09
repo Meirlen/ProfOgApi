@@ -664,7 +664,7 @@ async def getTestResults(db: Session = Depends(database.get_db),current_user=Dep
 @router.get("/getSpecialityById")
 async def getSpecialityById(id:int,db: Session = Depends(database.get_db)):
     result=[]
-    query = f'''SELECT * FROM speciality where id={id} '''
+    query = f'''SELECT * FROM speciality JOIN type ON speciality.typeid=type.id where speciality.id={id} '''
     query_data_result=db.execute(query).fetchall()
     for item in query_data_result:
         result.append({
@@ -680,7 +680,8 @@ async def getSpecialityById(id:int,db: Session = Depends(database.get_db)):
             "language": item[9],
             "videos":"https://profogapi-stage.blr1.digitaloceanspaces.com/profogapi-stage/"+item[10],
             "partners":json.loads(item[11]),
-            "averagesalary":item[12]
+            "averagesalary":item[12],
+            "typename":item[14]
         })
 
     return result
@@ -689,12 +690,26 @@ async def getSpecialityById(id:int,db: Session = Depends(database.get_db)):
 async def getSpecialityByToken(db: Session = Depends(database.get_db),current_user=Depends(get_user)):
     result=[]
     type_id =db.query(table.TestComplete).filter(table.TestComplete.phone_number == current_user).first()
-    query=f'''SELECT id,specialtyname,photos FROM speciality where typeid={type_id.maintypeid};'''
+    query=f'''SELECT id,specialtyname,photos,averagesalary FROM speciality where typeid={type_id.maintypeid};'''
     query_result=db.execute(query).fetchall()
     for item in query_result:
         result.append({
             "id": item[0],
             "specialtyname" : item[1],
-            "photos":"https://profogapi-stage.blr1.digitaloceanspaces.com/profogapi-stage/"+item[2]
+            "photos":"https://profogapi-stage.blr1.digitaloceanspaces.com/profogapi-stage/"+item[2],
+            "averagesalary":item[3]
         })
     return result
+
+@router.post("/addSpecialityInRegistration")
+async def addSpecialityInRegistration(
+    specialityID: List[str] = Form(...),
+    db: Session = Depends(database.get_db),
+    current_user=Depends(get_user)):
+    print(specialityID)
+    query = f'''UPDATE registration SET speciality= ARRAY {specialityID} where phonenumber='{current_user}';'''
+    db.execute(query)
+    db.commit()
+    return {
+        "msg": "Added Speciality in Registration Table"
+    }
