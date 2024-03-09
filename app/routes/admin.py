@@ -192,11 +192,12 @@ async def createSpecialty(request:Request,
     partnersImage: List[UploadFile] = File(...),
     partnersTitle: List[str] = Form(...),
     partnersSalary: List[str] = Form(...),
+    averagesalary:int  = Form(...),
     db: Session = Depends(database.get_db)):
     datapartnersTitle = partnersTitle[0].split(',')
     datapartnersSalary = partnersSalary[0].split(',')
     lang=request.headers.get("lang")
-    query = f''' INSERT INTO speciality (specialtyname,typeid,barcode,hardskills,softskills,description,about,language) VALUES ('{specialtyname}',{typeid},'{barcode}',ARRAY {hardskills},ARRAY {softskills},'{description}','{about}','{lang}') RETURNING ID'''
+    query = f''' INSERT INTO speciality (specialtyname,typeid,barcode,hardskills,softskills,description,about,language,averagesalary) VALUES ('{specialtyname}',{typeid},'{barcode}',ARRAY {hardskills},ARRAY {softskills},'{description}','{about}','{lang}',{averagesalary}) RETURNING ID'''
     # print(query)
     data=db.execute(query).fetchall()
     db.commit()
@@ -216,6 +217,7 @@ async def createSpecialty(request:Request,
                 files.file.close()
             obj=uploadfile()
             obj.upload_file(temp.name,'profogapi-stage',uploadphotoname,ExtraArgs={'ContentType': "image/jpeg"})
+            obj.put_object_acl( ACL='public-read', Bucket='profogapi-stage',Key=uploadphotoname)
         except Exception:
             raise HTTPException(status_code=500, detail='Something went wrong')
         finally:
@@ -235,6 +237,7 @@ async def createSpecialty(request:Request,
                 files.file.close()
             obj=uploadfile()
             obj.upload_file(temp.name,'profogapi-stage',uploadfilename,ExtraArgs={'ContentType': "image/jpeg"})
+            obj.put_object_acl( ACL='public-read', Bucket='profogapi-stage',Key=uploadfilename)
         except Exception:
             raise HTTPException(status_code=500, detail='Something went wrong')
         finally:
@@ -256,6 +259,7 @@ async def createSpecialty(request:Request,
                 files.file.close()
             obj=uploadfile()
             obj.upload_file(temp.name,'profogapi-stage',uploadpartnersimage,ExtraArgs={'ContentType': "image/jpeg"})
+            obj.put_object_acl( ACL='public-read', Bucket='profogapi-stage',Key=uploadpartnersimage)
         except Exception:
             raise HTTPException(status_code=500, detail='Something went wrong')
         finally:
@@ -675,7 +679,8 @@ async def getSpecialityById(id:int,db: Session = Depends(database.get_db)):
             "about":item[8],
             "language": item[9],
             "videos":"https://profogapi-stage.blr1.digitaloceanspaces.com/profogapi-stage/"+item[10],
-            "partners":json.loads(item[11])
+            "partners":json.loads(item[11]),
+            "averagesalary":item[12]
         })
 
     return result

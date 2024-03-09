@@ -65,7 +65,7 @@ class Speciality(Base):
     language=Column(String,nullable=False)
     videos = Column(String, nullable=True)
     partners=Column(String,nullable=True)
-
+    averagesalary=Column(Integer,nullable=False)
 class University(Base):
     __tablename__ = "university"
     id = Column(Integer, primary_key=True, nullable=False)
