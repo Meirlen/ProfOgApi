@@ -437,6 +437,7 @@ async def createClient(
             photos.file.close()
         obj=uploadfile()
         obj.upload_file(temp.name,'profogapi-stage',uploadphotoname,ExtraArgs={'ContentType': "image/jpeg"})
+        obj.put_object_acl( ACL='public-read', Bucket='profogapi-stage',Key=uploadphotoname)
     except Exception:
         raise HTTPException(status_code=500, detail='Something went wrong')
     finally:
@@ -654,4 +655,41 @@ async def getTestResults(db: Session = Depends(database.get_db),current_user=Dep
             "additionaldescription":item[7]
         })
 
+    return result
+
+@router.get("/getSpecialityById")
+async def getSpecialityById(id:int,db: Session = Depends(database.get_db)):
+    result=[]
+    query = f'''SELECT * FROM speciality where id={id} '''
+    query_data_result=db.execute(query).fetchall()
+    for item in query_data_result:
+        result.append({
+            "id":item[0],
+            "specialtyname": item[1],
+            "typeid":item[2],
+            "photos":"https://profogapi-stage.blr1.digitaloceanspaces.com/profogapi-stage/"+item[3],
+            "barcode":item[4],
+            "hardskills": item[5],
+            "softskills":item[6],
+            "description":item[7],
+            "about":item[8],
+            "language": item[9],
+            "videos":"https://profogapi-stage.blr1.digitaloceanspaces.com/profogapi-stage/"+item[10],
+            "partners":json.loads(item[11])
+        })
+
+    return result
+
+@router.get("/getSpecialityByToken")
+async def getSpecialityByToken(db: Session = Depends(database.get_db),current_user=Depends(get_user)):
+    result=[]
+    type_id =db.query(table.TestComplete).filter(table.TestComplete.phone_number == current_user).first()
+    query=f'''SELECT id,specialtyname,photos FROM speciality where typeid={type_id.maintypeid};'''
+    query_result=db.execute(query).fetchall()
+    for item in query_result:
+        result.append({
+            "id": item[0],
+            "specialtyname" : item[1],
+            "photos":"https://profogapi-stage.blr1.digitaloceanspaces.com/profogapi-stage/"+item[2]
+        })
     return result
