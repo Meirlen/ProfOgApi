@@ -754,7 +754,7 @@ async def getSelectedSpecialities(
 
 @router.get("/getUniversityBySpecialityIdAndRegion")
 async def getUniversityBySpecialityIdAndRegion(
-    specialityId:int,
+    specialityId:str,
     region:str,
     db: Session = Depends(database.get_db),
     current_user=Depends(get_user) ):
