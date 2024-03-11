@@ -756,7 +756,7 @@ async def getSelectedSpecialities(
 async def getUniversityBySpecialityIdAndRegion(
     specialityId:int,
     region:str,
-    db: Session = Depends(database.get_db)
+    db: Session = Depends(database.get_db),
     current_user=Depends(get_user) ):
     results=[]
     query=f''' SELECT id,universityname,about,description,photos,city,grantdata FROM university where speciality='{specialityId}' AND region='{region}';'''
