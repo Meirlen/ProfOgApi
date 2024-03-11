@@ -81,6 +81,7 @@ class University(Base):
     universityid = Column(Integer, nullable=True)
     classification = Column(String, nullable=True)
     speciality = Column(String, nullable=True)
+    region = Column(String, nullable=True)
 
 
 class Client(Base):

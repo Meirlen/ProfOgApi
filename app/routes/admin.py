@@ -296,14 +296,15 @@ async def createUniversity(request:Request,
     universityId:int  = Form(...),
     classification:str  = Form(...),
     speciality: List[str] = File(...),
+    region:str  = Form(...),
     db: Session = Depends(database.get_db)):
     lang=request.headers.get("lang")
     datapartnersTitle = partnersTitle[0].split(',')
     datapartnersSalary = partnersSalary[0].split(',')
     if grant != '':
-        query = f''' INSERT INTO university (universityname,city,description,about,language,grantdata,universityid,classification,speciality) VALUES ('{universityname}','{city}','{description}','{about}','{lang}','{grant}',{universityId},'{classification}',ARRAY {speciality}) RETURNING ID'''
+        query = f''' INSERT INTO university (universityname,city,description,about,language,grantdata,universityid,classification,speciality,region) VALUES ('{universityname}','{city}','{description}','{about}','{lang}','{grant}',{universityId},'{classification}',ARRAY {speciality},'{region}') RETURNING ID'''
     else:
-        query = f''' INSERT INTO university (universityname,city,description,about,language,universityid,classification,speciality) VALUES ('{universityname}','{city}','{description}','{about}','{lang}',{universityId},'{classification}',ARRAY {speciality}) RETURNING ID'''
+        query = f''' INSERT INTO university (universityname,city,description,about,language,universityid,classification,speciality) VALUES ('{universityname}','{city}','{description}','{about}','{lang}',{universityId},'{classification}',ARRAY {speciality},'{region}') RETURNING ID'''
     print(query)
     data=db.execute(query).fetchall()
     db.commit()
