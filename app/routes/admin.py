@@ -751,3 +751,25 @@ async def getSelectedSpecialities(
             })
 
     return results
+
+@router.get("/getUniversityBySpecialityIdAndRegion")
+async def getUniversityBySpecialityIdAndRegion(
+    specialityId:int,
+    region:str,
+    db: Session = Depends(database.get_db)
+    current_user=Depends(get_user) ):
+    results=[]
+    query=f''' SELECT id,universityname,about,description,photos,city,grantdata FROM university where speciality='{specialityId}' AND region='{region}';'''
+    result=db.execute(query).fetchall()
+    for item in result:
+        results.append({
+            "id":item[0],
+            "universityname":item[1],
+            "about":item[2],
+            "description":item[3],
+            "photos":"https://profogapi-stage.blr1.digitaloceanspaces.com/profogapi-stage/"+item[4],
+            "city":item[5],
+            "grant":item[6]
+        })
+
+    return results
