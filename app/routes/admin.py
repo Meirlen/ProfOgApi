@@ -716,6 +716,14 @@ async def addSpecialityInRegistration(
     db: Session = Depends(database.get_db),
     current_user=Depends(get_user)):
     print(specialityID)
+    user=db.query(table.SelectedSpecialities).filter(table.SelectedSpecialities.phone_number==current_user).first()
+    if not user:
+        insertquery = f''' INSERT INTO selectedspecialities (phone_number,selectedspecialities,created_at) VALUES ({current_user}, ARRAY {specialityID},'{datetime.now()}');'''
+        db.execute(insertquery)
+        db.commit()
+    selectedspecialitiesquery=f''' UPDATE selectedspecialities SET  selectedspecialities= ARRAY {specialityID},created_at='{datetime.now()}' where phone_number='{current_user}';'''
+    db.execute(selectedspecialitiesquery)
+    db.commit()
     query = f'''UPDATE registration SET speciality= ARRAY {specialityID} where phonenumber='{current_user}';'''
     db.execute(query)
     db.commit()

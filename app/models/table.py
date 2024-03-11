@@ -78,7 +78,7 @@ class University(Base):
     language=Column(String,nullable=False)
     videos = Column(String, nullable=True)
     partners=Column(String,nullable=True)
-    universityid = Column(Integer, nullable=True)
+    universityid = Column(String, nullable=True)
     classification = Column(String, nullable=True)
     speciality = Column(String, nullable=True)
     region = Column(String, nullable=True)
@@ -125,3 +125,11 @@ class TestComplete(Base):
     numberofpointsadditionaltype = Column(Integer, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True),
                         nullable=False, server_default=text('now()'))
+    
+class SelectedSpecialities(Base):
+    __tablename__ ="selectedspecialities"
+    id = Column(Integer, primary_key=True, nullable=False)
+    phone_number = Column(BIGINT, nullable=False)
+    selectedspecialities = Column(String, nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True),
+                        nullable=False)
