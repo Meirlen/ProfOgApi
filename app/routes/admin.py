@@ -304,7 +304,7 @@ async def createUniversity(request:Request,
     if grant != '':
         query = f''' INSERT INTO university (universityname,city,description,about,language,grantdata,universityid,classification,speciality,region) VALUES ('{universityname}','{city}','{description}','{about}','{lang}','{grant}',{universityId},'{classification}',ARRAY {speciality},'{region}') RETURNING ID'''
     else:
-        query = f''' INSERT INTO university (universityname,city,description,about,language,universityid,classification,speciality) VALUES ('{universityname}','{city}','{description}','{about}','{lang}',{universityId},'{classification}',ARRAY {speciality},'{region}') RETURNING ID'''
+        query = f''' INSERT INTO university (universityname,city,description,about,language,universityid,classification,speciality,region) VALUES ('{universityname}','{city}','{description}','{about}','{lang}',{universityId},'{classification}',ARRAY {speciality},'{region}') RETURNING ID'''
     print(query)
     data=db.execute(query).fetchall()
     db.commit()
