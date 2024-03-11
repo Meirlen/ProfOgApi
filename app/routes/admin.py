@@ -405,7 +405,8 @@ async def getUniversityById(id:int,db: Session = Depends(database.get_db)):
             "grantdata":item[9],
             "universityID":item[10],
             "classification":item[11],
-            "speciality":item[12]
+            "speciality":item[12],
+            "region":item[13]
         })
     return result
 
