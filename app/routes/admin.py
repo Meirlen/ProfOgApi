@@ -293,14 +293,16 @@ async def createUniversity(request:Request,
     partnersImage: List[UploadFile] = File(...),
     partnersTitle: List[str] = Form(...),
     partnersSalary: List[str] = Form(...),
+    universityId:str  = Form(...),
+    classification:str  = Form(...),
     db: Session = Depends(database.get_db)):
     lang=request.headers.get("lang")
     datapartnersTitle = partnersTitle[0].split(',')
     datapartnersSalary = partnersSalary[0].split(',')
     if grant != '':
-        query = f''' INSERT INTO university (universityname,city,description,about,language,grantdata) VALUES ('{universityname}','{city}','{description}','{about}','{lang}','{grant}') RETURNING ID'''
+        query = f''' INSERT INTO university (universityname,city,description,about,language,grantdata,universityid,classification) VALUES ('{universityname}','{city}','{description}','{about}','{lang}','{grant}',{universityId},{classification}) RETURNING ID'''
     else:
-        query = f''' INSERT INTO university (universityname,city,description,about,language) VALUES ('{universityname}','{city}','{description}','{about}','{lang}') RETURNING ID'''
+        query = f''' INSERT INTO university (universityname,city,description,about,language,universityid,classification) VALUES ('{universityname}','{city}','{description}','{about}','{lang}',{universityId},{classification}) RETURNING ID'''
     data=db.execute(query).fetchall()
     db.commit()
     id=(data[0]['id'])
@@ -397,7 +399,9 @@ async def getUniversityById(id:int,db: Session = Depends(database.get_db)):
             "language":item[6],
             "videos":item[7],
             "partners":item[8],
-            "grantdata":item[9]
+            "grantdata":item[9],
+            "universityID":item[10],
+            "classification":item[11]
         })
     return result
 
