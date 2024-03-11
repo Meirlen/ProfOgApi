@@ -13,7 +13,7 @@ from fastapi import File, UploadFile,Form
 from tempfile import NamedTemporaryFile
 from urllib.parse import urlparse
 from .. utils.oauth import get_user,get_current_token
-import random
+import random,ast
 from datetime import datetime
 
 
@@ -293,7 +293,7 @@ async def createUniversity(request:Request,
     partnersImage: List[UploadFile] = File(...),
     partnersTitle: List[str] = Form(...),
     partnersSalary: List[str] = Form(...),
-    universityId:int  = Form(...),
+    universityId:str  = Form(...),
     classification:str  = Form(...),
     speciality: List[str] = File(...),
     region:str  = Form(...),
@@ -730,3 +730,24 @@ async def addSpecialityInRegistration(
     return {
         "msg": "Added Speciality in Registration Table"
     }
+
+@router.post("/getSelectedSpecialities")
+async def getSelectedSpecialities(
+    db: Session = Depends(database.get_db),
+    current_user=Depends(get_user)):
+    results=[]
+    user=db.query(table.SelectedSpecialities).filter(table.SelectedSpecialities.phone_number==current_user).first()
+    cleaned_string = (user.selectedspecialities.strip('{}')).replace('"','')
+    speciality_list = ast.literal_eval('[' + cleaned_string + ']')
+    for item in speciality_list:
+        speciality_query=f'''SELECT id,specialtyname,photos,averagesalary FROM speciality where id = {item};'''
+        speciality_query_result=db.execute(speciality_query).fetchall()
+        for item in speciality_query_result:
+            results.append({
+                "id":item[0],
+                "specialtyname":item[1],
+                "photos":"https://profogapi-stage.blr1.digitaloceanspaces.com/profogapi-stage/"+item[2],
+                "averagesalary":item[3]
+            })
+
+    return results
