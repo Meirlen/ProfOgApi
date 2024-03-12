@@ -846,10 +846,9 @@ async def getStatistics(
 @router.post("/getSelectedUniversity")
 async def getSelectedUniversity(
     db: Session = Depends(database.get_db),
-    #current_user=Depends(get_user)
-    ):
+    current_user=Depends(get_user)):
     results=[]
-    user=db.query(table.SelectedUniversity).filter(table.SelectedUniversity.phone_number=='77026352452').first()
+    user=db.query(table.SelectedUniversity).filter(table.SelectedUniversity.phone_number==current_user).first()
     cleaned_string = (user.selecteduniversity.strip('{}')).replace('"','')
     university_list = ast.literal_eval('[' + cleaned_string + ']')
     for item in university_list:
