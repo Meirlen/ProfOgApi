@@ -842,3 +842,28 @@ async def getStatistics(
         })
         current_date += timedelta(days=1)
     return results
+
+@router.post("/getSelectedUniversity")
+async def getSelectedUniversity(
+    db: Session = Depends(database.get_db),
+    #current_user=Depends(get_user)
+    ):
+    results=[]
+    user=db.query(table.SelectedUniversity).filter(table.SelectedUniversity.phone_number=='77026352452').first()
+    cleaned_string = (user.selecteduniversity.strip('{}')).replace('"','')
+    university_list = ast.literal_eval('[' + cleaned_string + ']')
+    for item in university_list:
+        university_query=f'''SELECT id,universityname,about,description,photos,city,grantdata FROM university where id = {item};'''
+        university_queryresult=db.execute(university_query).fetchall()
+        for item in university_queryresult:
+            results.append({
+                "id":item[0],
+                "universityname":item[1],
+                "about":item[2],
+                "description":item[3],
+                "photos":"https://profogapi-stage.blr1.digitaloceanspaces.com/profogapi-stage/"+item[4],
+                "city":item[5],
+                "grantdata":item[6]
+            })
+
+    return results
