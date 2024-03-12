@@ -778,3 +778,20 @@ async def getUniversityBySpecialityIdAndRegion(
             })
 
     return results
+
+@router.get("/getTestSpecialityUniversity")
+async def getTestSpecialityUniversity(
+    db: Session = Depends(database.get_db),
+    current_user=Depends(get_user)):
+    results=[]
+    query=f''' SELECT test,university,speciality FROM registration  where phonenumber='{current_user}';'''
+    result=db.execute(query).fetchall()
+    for item in result:
+        print(item)
+        results.append({
+            "test": True if item[0] is not None else False,
+            "university":True if item[1] is not None else False,
+            "speciality":True if item[2] is not None else False
+        })
+
+    return results
