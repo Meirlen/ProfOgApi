@@ -1,6 +1,7 @@
 from fastapi import APIRouter,Response,Depends,BackgroundTasks,status,HTTPException
 from sqlalchemy.orm import Session
 from .. config import database as database
+from ..config.database import engine
 from .. config.database import engine,SQLALCHEMY_DATABASE_URL
 from .. schemas import input
 from .. models import table
@@ -14,7 +15,7 @@ from tempfile import NamedTemporaryFile
 from urllib.parse import urlparse
 from .. utils.oauth import get_user,get_current_token
 import random,ast
-from datetime import datetime
+from datetime import datetime,date,timedelta
 
 
 router = APIRouter(tags=['admin'])
@@ -817,3 +818,27 @@ async def addUniversityInRegistration(
     return {
         "msg": "Added University in Registration Table"
     }
+
+@router.get("/getStatistics")
+async def getStatistics(
+    from_date:date,
+    to_date:date,
+    db: Session = Depends(database.get_db),
+    #current_user=Depends(get_user)
+    ):
+    results=[]
+    current_date = from_date
+    while current_date <= to_date:
+        type=[]
+        print(current_date)
+        query=f'''WITH RECURSIVE cte AS (SELECT * FROM type ORDER BY id ), data AS (SELECT count(phone_number)as count, maintypeid FROM testcomplete where DATE(created_at)='{current_date}' GROUP BY maintypeid ORDER BY maintypeid) SELECT cte.id,cte.type,COALESCE(data.count, 0)count_orders FROM cte LEFT JOIN data ON cte.id=data.maintypeid; '''
+        connection = engine.connect()    
+        data = connection.execute(query).fetchall()
+        connection.close()
+        engine.dispose()
+        results.append({
+            "Created_at": current_date,
+            "types":data
+        })
+        current_date += timedelta(days=1)
+    return results
