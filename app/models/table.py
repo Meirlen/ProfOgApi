@@ -133,3 +133,11 @@ class SelectedSpecialities(Base):
     selectedspecialities = Column(String, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True),
                         nullable=False)
+    
+class SelectedUniversity(Base):
+    __tablename__ ="selecteduniversity"
+    id = Column(Integer, primary_key=True, nullable=False)
+    phone_number = Column(BIGINT, nullable=False)
+    selecteduniversity = Column(String, nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True),
+                        nullable=False)

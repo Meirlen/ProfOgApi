@@ -795,3 +795,25 @@ async def getTestSpecialityUniversity(
         })
 
     return results
+
+
+@router.post("/addUniversityInRegistration")
+async def addUniversityInRegistration(
+    universityID: List[str] = Form(...),
+    db: Session = Depends(database.get_db),
+    current_user=Depends(get_user)):
+    print(universityID)
+    user=db.query(table.SelectedUniversity).filter(table.SelectedUniversity.phone_number==current_user).first()
+    if not user:
+        insertquery = f''' INSERT INTO selecteduniversity (phone_number,selecteduniversity,created_at) VALUES ({current_user}, ARRAY {universityID},'{datetime.now()}');'''
+        db.execute(insertquery)
+        db.commit()
+    selectedspecialitiesquery=f''' UPDATE selecteduniversity SET  selecteduniversity= ARRAY {universityID},created_at='{datetime.now()}' where phone_number='{current_user}';'''
+    db.execute(selectedspecialitiesquery)
+    db.commit()
+    query = f'''UPDATE registration SET university= ARRAY {universityID} where phonenumber='{current_user}';'''
+    db.execute(query)
+    db.commit()
+    return {
+        "msg": "Added University in Registration Table"
+    }
