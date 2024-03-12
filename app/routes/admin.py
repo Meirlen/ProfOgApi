@@ -324,6 +324,7 @@ async def createUniversity(request:Request,
                 files.file.close()
             obj=uploadfile()
             obj.upload_file(temp.name,'profogapi-stage',uploadphotoname,ExtraArgs={'ContentType': "image/jpeg"})
+            obj.put_object_acl( ACL='public-read', Bucket='profogapi-stage',Key=uploadphotoname)
         except Exception:
             raise HTTPException(status_code=500, detail='Something went wrong')
         finally:
@@ -343,6 +344,7 @@ async def createUniversity(request:Request,
                 files.file.close()
             obj=uploadfile()
             obj.upload_file(temp.name,'profogapi-stage',uploadfilename,ExtraArgs={'ContentType': "image/jpeg"})
+            obj.put_object_acl( ACL='public-read', Bucket='profogapi-stage',Key=uploadfilename)
         except Exception:
             raise HTTPException(status_code=500, detail='Something went wrong')
         finally:
@@ -365,6 +367,7 @@ async def createUniversity(request:Request,
                 files.file.close()
             obj=uploadfile()
             obj.upload_file(temp.name,'profogapi-stage',uploadpartnersimage,ExtraArgs={'ContentType': "image/jpeg"})
+            obj.put_object_acl( ACL='public-read', Bucket='profogapi-stage',Key=uploadpartnersimage)
         except Exception:
             raise HTTPException(status_code=500, detail='Something went wrong')
         finally:
