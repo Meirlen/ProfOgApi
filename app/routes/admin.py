@@ -42,13 +42,13 @@ async def getRegisteredUsers(param:input.FilterByIdOrRegion,db: Session = Depend
         "Total Registered Users": len(lengthquerydata)
     })
     if param.id != '' and param.region !='':
-        query = f''' SELECT * FROM registration JOIN type ON CAST(registration.test AS INT) = type.id where id = {param.id} AND region = '{param.region}' LIMIT {limit} OFFSET {offset};'''
+        query = f''' SELECT * FROM registration  where registration.id = {param.id} AND registration.region = '{param.region}' LIMIT {limit} OFFSET {offset};'''
     elif param.id == '' and param.region !='':
-        query = f''' SELECT * FROM registration JOIN type ON CAST(registration.test AS INT) = type.id where region = '{param.region}' LIMIT {limit} OFFSET {offset};'''
+        query = f''' SELECT * FROM registration where registration.region = '{param.region}' LIMIT {limit} OFFSET {offset};'''
     elif param.id !='' and param.region == '':
-        query = f''' SELECT * FROM registration JOIN type ON CAST(registration.test AS INT) = type.id where id = {param.id} LIMIT {limit} OFFSET {offset};'''
+        query = f''' SELECT * FROM registration where registration.id = {param.id} LIMIT {limit} OFFSET {offset};'''
     else:
-        query = f''' SELECT * FROM registration JOIN type ON CAST(registration.test AS INT) = type.id LIMIT {limit} OFFSET {offset} ;'''
+        query = f''' SELECT * FROM registration  LIMIT {limit} OFFSET {offset} ;'''
     print(query)
     data = db.execute(query).fetchall()
     for item in data:
@@ -67,6 +67,11 @@ async def getRegisteredUsers(param:input.FilterByIdOrRegion,db: Session = Depend
             speciality_result=db.execute(query).fetchall()
             if len(speciality_result) > 0:
                 specialityname.append((speciality_result[0])['specialtyname'])
+        if item[11] != None:
+            typequery=f''' SELECT type from type where id ={item[11]};'''
+            typequeryresult=db.execute(typequery).fetchall()
+            print(typequeryresult)
+
         result.append({
             "id": item[0],
             "First Name": item[1],
@@ -79,7 +84,7 @@ async def getRegisteredUsers(param:input.FilterByIdOrRegion,db: Session = Depend
             "School": item[8],
             "Class": item[9],
             "Class Stream": item[10],
-            "type": item[16],
+            "type": (typequeryresult[0])['type'],
             "universityname": universityname,
             "specialityname":specialityname,
             "created_at": item[14]
