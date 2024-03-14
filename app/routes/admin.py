@@ -452,7 +452,6 @@ async def getAllUniversity(db: Session = Depends(database.get_db)):
 
 @router.post("/createClient")
 async def createClient(
-    universityname :str = Form(...),
     photos: UploadFile = File(...),
     BIN:str  = Form(...),
     email: str= Form(...),
@@ -460,7 +459,7 @@ async def createClient(
     password:str = Form(...),
     universityid:int = Form(...),
     db: Session = Depends(database.get_db)):
-    query = f'''INSERT INTO client (universityname,bin,email,reservephone,password,universityid) VALUES ('{universityname}','{BIN}','{email}','{reservePhone}','{password}',{universityid}) RETURNING ID ;'''
+    query = f'''INSERT INTO client (bin,email,reservephone,password,universityid) VALUES ('{BIN}','{email}','{reservePhone}','{password}',{universityid}) RETURNING ID ;'''
     data=db.execute(query).fetchall()
     db.commit()
     id=(data[0]['id'])
@@ -890,4 +889,24 @@ async def getSelectedUniversity(
                 "grantdata":item[6]
             })
 
+    return results
+
+@router.get("/getUniversityNameAndUniversityId")
+async def getUniversityNameAndUniversityId(
+    db: Session = Depends(database.get_db),
+    current_user=Depends(get_user)
+    ):
+    results=[]
+    university_id_query=f''' SELECT DISTINCT(universityid) FROM university;'''
+    university_id_query_result=db.execute(university_id_query).fetchall()
+    for item in university_id_query_result:
+        print(item[0])
+        ru_university_name=db.query(table.University).filter(table.University.language=='ru' and table.University.universityid==item[0]).first()
+        kz_university_name=db.query(table.University).filter(table.University.language=='kz').first()
+        print(ru_university_name.universityname)
+        results.append({
+            "UniversityId":item[0],
+            "UniversityNameRu": "null" if ru_university_name is None else ru_university_name.universityname,
+            "UniversityNameKz": "null" if kz_university_name is None else kz_university_name.universityname,
+        })
     return results
