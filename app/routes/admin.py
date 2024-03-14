@@ -781,12 +781,14 @@ async def getSelectedSpecialities(
 
 @router.get("/getUniversityBySpecialityIdAndRegion")
 async def getUniversityBySpecialityIdAndRegion(
+    request:Request,
     specialityId:str,
     region:str,
     db: Session = Depends(database.get_db),
     current_user=Depends(get_user)):
     results=[]
-    query=f''' SELECT id,universityname,about,description,photos,city,grantdata,speciality FROM university where region='{region}';'''
+    lang=request.headers.get("lang")
+    query=f''' SELECT id,universityname,about,description,photos,city,grantdata,speciality FROM university where language='{lang}' and region='{region}';'''
     result=db.execute(query).fetchall()
     for item in result:
         present = specialityId in item[7]
