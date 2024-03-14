@@ -502,6 +502,8 @@ async def getAllClient(page:int,db: Session = Depends(database.get_db)):
     query = f'''SELECT * FROM client LIMIT {limit} OFFSET {offset} '''
     query_data_result=db.execute(query).fetchall()
     for item in query_data_result:
+        ru_university_name=db.query(table.University).filter(table.University.language=='ru').filter(table.University.universityid==item[6]).first()
+        kz_university_name=db.query(table.University).filter(table.University.language=='kz').filter(table.University.universityid==item[6]).first()
         result.append({
             "id": item[0],
             "photos":item[1],
@@ -509,7 +511,9 @@ async def getAllClient(page:int,db: Session = Depends(database.get_db)):
             "email":item[3],
             "reservephone":item[4],
             "password":item[5],
-            "universityid":item[6]
+            "universityid":item[6],
+            "UniversityNameRu": "null" if ru_university_name is None else ru_university_name.universityname,
+            "UniversityNameKz": "null" if kz_university_name is None else kz_university_name.universityname
         })
     return result
 
