@@ -722,10 +722,11 @@ async def getSpecialityById(id:int,db: Session = Depends(database.get_db)):
     return result
 
 @router.get("/getSpecialityByToken")
-async def getSpecialityByToken(db: Session = Depends(database.get_db),current_user=Depends(get_user)):
+async def getSpecialityByToken(request:Request,db: Session = Depends(database.get_db),current_user=Depends(get_user)):
     result=[]
+    lang=request.headers.get("lang")
     type_id =db.query(table.TestComplete).filter(table.TestComplete.phone_number == current_user).first()
-    query=f'''SELECT id,specialtyname,photos,averagesalary FROM speciality where typeid={type_id.maintypeid};'''
+    query=f'''SELECT id,specialtyname,photos,averagesalary FROM speciality where language = '{lang}' and typeid={type_id.maintypeid};'''
     query_result=db.execute(query).fetchall()
     for item in query_result:
         result.append({
