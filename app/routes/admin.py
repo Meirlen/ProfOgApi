@@ -56,7 +56,7 @@ async def getRegisteredUsers(param:input.FilterByIdOrRegion,db: Session = Depend
         cleaned_string_speciality = (item[13].strip('{}')).replace('"','')
         university_list = ast.literal_eval('[' + cleaned_string_university + ']')
         speciality_list = ast.literal_eval('[' + cleaned_string_speciality + ']')
-        universityname,specialityname=[],[]
+        universityname,specialityname,typename=[],[],""
         for items in university_list:
             query = f''' SELECT universityname FROM university where id ={items};'''
             university_result=db.execute(query).fetchall()
@@ -70,7 +70,7 @@ async def getRegisteredUsers(param:input.FilterByIdOrRegion,db: Session = Depend
         if item[11] != None:
             typequery=f''' SELECT type from type where id ={item[11]};'''
             typequeryresult=db.execute(typequery).fetchall()
-            print(typequeryresult)
+            typename=(typequeryresult[0])['type']
 
         result.append({
             "id": item[0],
@@ -84,7 +84,7 @@ async def getRegisteredUsers(param:input.FilterByIdOrRegion,db: Session = Depend
             "School": item[8],
             "Class": item[9],
             "Class Stream": item[10],
-            "type": (typequeryresult[0])['type'],
+            "type": typename,
             "universityname": universityname,
             "specialityname":specialityname,
             "created_at": item[14]
