@@ -504,13 +504,12 @@ async def getAllClient(page:int,db: Session = Depends(database.get_db)):
     for item in query_data_result:
         result.append({
             "id": item[0],
-            "universityname":item[1],
-            "photos":item[2],
-            "bin":item[3],
-            "email":item[4],
-            "reservephone":item[5],
-            "password":item[6],
-            "universityid":item[7]
+            "photos":item[1],
+            "bin":item[2],
+            "email":item[3],
+            "reservephone":item[4],
+            "password":item[5],
+            "universityid":item[6]
         })
     return result
 
