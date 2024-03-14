@@ -894,19 +894,17 @@ async def getSelectedUniversity(
 @router.get("/getUniversityNameAndUniversityId")
 async def getUniversityNameAndUniversityId(
     db: Session = Depends(database.get_db),
-    current_user=Depends(get_user)
+    #current_user=Depends(get_user)
     ):
     results=[]
     university_id_query=f''' SELECT DISTINCT(universityid) FROM university;'''
     university_id_query_result=db.execute(university_id_query).fetchall()
     for item in university_id_query_result:
-        print(item[0])
-        ru_university_name=db.query(table.University).filter(table.University.language=='ru' and table.University.universityid==item[0]).first()
-        kz_university_name=db.query(table.University).filter(table.University.language=='kz' and table.University.universityid==item[0]).first()
-        print(ru_university_name.universityname,kz_university_name.universityname,)
+        ru_university_name=db.query(table.University).filter(table.University.language=='ru').filter(table.University.universityid==item[0]).first()
+        kz_university_name=db.query(table.University).filter(table.University.language=='kz').filter(table.University.universityid==item[0]).first()
         results.append({
             "UniversityId":item[0],
             "UniversityNameRu": "null" if ru_university_name is None else ru_university_name.universityname,
-            "UniversityNameKz": "null" if kz_university_name is None else kz_university_name.universityname,
+            "UniversityNameKz": "null" if kz_university_name is None else kz_university_name.universityname
         })
     return results
