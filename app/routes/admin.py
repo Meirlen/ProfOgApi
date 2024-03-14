@@ -902,7 +902,7 @@ async def getUniversityNameAndUniversityId(
     for item in university_id_query_result:
         print(item[0])
         ru_university_name=db.query(table.University).filter(table.University.language=='ru' and table.University.universityid==item[0]).first()
-        kz_university_name=db.query(table.University).filter(table.University.language=='kz').first()
+        kz_university_name=db.query(table.University).filter(table.University.language=='kz' and table.University.universityid==item[0]).first()
         print(ru_university_name.universityname)
         results.append({
             "UniversityId":item[0],
