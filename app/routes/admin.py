@@ -903,7 +903,7 @@ async def getUniversityNameAndUniversityId(
         print(item[0])
         ru_university_name=db.query(table.University).filter(table.University.language=='ru' and table.University.universityid==item[0]).first()
         kz_university_name=db.query(table.University).filter(table.University.language=='kz' and table.University.universityid==item[0]).first()
-        print(ru_university_name.universityname)
+        print(ru_university_name.universityname,kz_university_name.universityname,)
         results.append({
             "UniversityId":item[0],
             "UniversityNameRu": "null" if ru_university_name is None else ru_university_name.universityname,
