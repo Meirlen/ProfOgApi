@@ -52,11 +52,11 @@ async def getRegisteredUsers(param:input.FilterByIdOrRegion,db: Session = Depend
     print(query)
     data = db.execute(query).fetchall()
     for item in data:
-        cleaned_string_university = (item[12].strip('{}')).replace('"','')
-        cleaned_string_speciality = (item[13].strip('{}')).replace('"','')
+        universityname,specialityname,typename,cleaned_string_university,cleaned_string_speciality=[],[],"","",""
+        if item[12] != None: cleaned_string_university = (item[12].strip('{}')).replace('"','')
+        if item[13] != None: cleaned_string_speciality = (item[13].strip('{}')).replace('"','')
         university_list = ast.literal_eval('[' + cleaned_string_university + ']')
         speciality_list = ast.literal_eval('[' + cleaned_string_speciality + ']')
-        universityname,specialityname,typename=[],[],""
         for items in university_list:
             query = f''' SELECT universityname FROM university where id ={items};'''
             university_result=db.execute(query).fetchall()
