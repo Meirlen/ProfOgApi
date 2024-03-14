@@ -31,8 +31,8 @@ async def count_user_on_each_day(param:input.CountUserOnEachDay):
     engine.dispose()
     return data
 
-@router.post("/filterbyidorregion")
-async def filterbyidorregion(param:input.FilterByIdOrRegion,db: Session = Depends(database.get_db)):
+@router.post("/getRegisteredUsers")
+async def getRegisteredUsers(param:input.FilterByIdOrRegion,db: Session = Depends(database.get_db)):
     result=[]
     limit =20
     offset = (limit*param.page) - limit
@@ -42,28 +42,47 @@ async def filterbyidorregion(param:input.FilterByIdOrRegion,db: Session = Depend
         "Total Registered Users": len(lengthquerydata)
     })
     if param.id != '' and param.region !='':
-        query = f''' SELECT * FROM registration where id = {param.id} AND region = '{param.region}' LIMIT {limit} OFFSET {offset};'''
+        query = f''' SELECT * FROM registration JOIN type ON CAST(registration.test AS INT) = type.id where id = {param.id} AND region = '{param.region}' LIMIT {limit} OFFSET {offset};'''
     elif param.id == '' and param.region !='':
-        query = f''' SELECT * FROM registration where region = '{param.region}' LIMIT {limit} OFFSET {offset};'''
+        query = f''' SELECT * FROM registration JOIN type ON CAST(registration.test AS INT) = type.id where region = '{param.region}' LIMIT {limit} OFFSET {offset};'''
     elif param.id !='' and param.region == '':
-        query = f''' SELECT * FROM registration where id = {param.id} LIMIT {limit} OFFSET {offset};'''
+        query = f''' SELECT * FROM registration JOIN type ON CAST(registration.test AS INT) = type.id where id = {param.id} LIMIT {limit} OFFSET {offset};'''
     else:
-        query = f''' SELECT * FROM registration LIMIT {limit} OFFSET {offset} ;'''
+        query = f''' SELECT * FROM registration JOIN type ON CAST(registration.test AS INT) = type.id LIMIT {limit} OFFSET {offset} ;'''
+    print(query)
     data = db.execute(query).fetchall()
     for item in data:
+        cleaned_string_university = (item[12].strip('{}')).replace('"','')
+        cleaned_string_speciality = (item[13].strip('{}')).replace('"','')
+        university_list = ast.literal_eval('[' + cleaned_string_university + ']')
+        speciality_list = ast.literal_eval('[' + cleaned_string_speciality + ']')
+        universityname,specialityname=[],[]
+        for items in university_list:
+            query = f''' SELECT universityname FROM university where id ={items};'''
+            university_result=db.execute(query).fetchall()
+            if len(university_result) > 0:
+                universityname.append((university_result[0])['universityname'])
+        for speciality in speciality_list:
+            query = f''' SELECT specialtyname FROM speciality where id ={speciality};'''
+            speciality_result=db.execute(query).fetchall()
+            if len(speciality_result) > 0:
+                specialityname.append((speciality_result[0])['specialtyname'])
         result.append({
             "id": item[0],
             "First Name": item[1],
             "Last Name": item[2],
-            "Phone Number": item[4],
-            "Email": item[5],
-            "Region":item[6],
-            "Locality":item[7],
-            "District":item[8],
-            "School": item[9],
-            "Class": item[10],
-            "Class Stream": item[11],
-            "created_at": item[12]
+            "Phone Number": item[3],
+            "Email": item[4],
+            "Region":item[5],
+            "Locality":item[6],
+            "District":item[7],
+            "School": item[8],
+            "Class": item[9],
+            "Class Stream": item[10],
+            "type": item[16],
+            "universityname": universityname,
+            "specialityname":specialityname,
+            "created_at": item[14]
         })
     return result
 
