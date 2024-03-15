@@ -423,12 +423,12 @@ async def getUniversityById(id:int,db: Session = Depends(database.get_db)):
         result.append({
             "id": item[0],
             "universityname":item[1],
-            "photos":item[2],
+            "photos":"https://profogapi-stage.blr1.digitaloceanspaces.com/profogapi-stage/"+item[2],
             "city":item[3],
             "description":item[4],
             "about":item[5],
             "language":item[6],
-            "videos":item[7],
+            "videos":"https://profogapi-stage.blr1.digitaloceanspaces.com/profogapi-stage/"+item[7],
             "partners":item[8],
             "grantdata":item[9],
             "universityID":item[10],
@@ -441,12 +441,14 @@ async def getUniversityById(id:int,db: Session = Depends(database.get_db)):
 @router.get("/getAllUniversity")
 async def getAllUniversity(db: Session = Depends(database.get_db)):
     result=[]
-    query = f'''SELECT id,universityname FROM university '''
+    query = f'''SELECT id,universityname,language,universityid FROM university; '''
     query_data_result=db.execute(query).fetchall()
     for item in query_data_result:
         result.append({
             "id": item[0],
             "universityname":item[1],
+            "language":item[2],
+            "universityid":item[3]
         })
     return result
 
@@ -998,3 +1000,27 @@ async def getUniversitySelections(
             "classification": "null" if ru_university_name is None else ru_university_name.classification,
         })
     return results
+
+@router.post("/deleteUniversityById")
+async def deleteClientById(param:input.DeleteUniversityById,db: Session = Depends(database.get_db)):
+    query= f''' SELECT photos,videos,partners FROM university where id={param.id}'''
+    queryresult=db.execute(query).fetchall()
+    if queryresult != []:
+        photoname=f'''{queryresult[0]['photos']}'''
+        videoname=f'''{queryresult[0]['videos']}'''
+        partners=json.loads(f'''{queryresult[0]['partners']}''')
+        s3=deletefile()
+        response=s3.delete_object(Bucket='profogapi-stage',Key=photoname)
+        response=s3.delete_object(Bucket='profogapi-stage',Key=videoname)
+        for i in partners:
+            object_key = (i['Image']).rsplit("/", 1)
+            partnersImageName=(object_key[-1])
+            s3=deletefile()
+            response=s3.delete_object(Bucket='profogapi-stage',Key=partnersImageName)
+        deletequery = f'''DELETE FROM university where id={param.id}'''
+        db.execute(deletequery)
+        db.commit()
+        return {"Msg" : "university Deleted successfully"}
+    else:
+        raise HTTPException(
+                            status_code=403, detail=f"ID is not available")

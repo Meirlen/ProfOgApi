@@ -85,3 +85,6 @@ class TestComplete(BaseModel):
     numberOfPointsMainType:int
     additionalTypeId:int
     numberOfPointsadditionalType:int
+
+class DeleteUniversityById(BaseModel):
+    id:int
