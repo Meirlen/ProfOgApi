@@ -920,22 +920,24 @@ async def getUniversityClassification(
     #current_user=Depends(get_user)
     ):
     results=[]
-    selected_university_query=f'''SELECT ARRAY_AGG(selecteduniversity),Date(created_at) FROM selecteduniversity where DATE(created_at) > '{fromdate}' and DATE(created_at) < '{todate}' GROUP BY DATE(created_at);'''
+    selected_university_query=f'''WITH RECURSIVE cte AS (SELECT DATE(mydate) as created_at FROM generate_series('{fromdate}', '{todate}', INTERVAL '1 day') d (mydate) ORDER BY created_at DESC) , data AS (SELECT ARRAY_AGG(selecteduniversity) as university,Date(created_at) as created_at FROM selecteduniversity where DATE(created_at) >= '{fromdate}' and DATE(created_at) <= '{todate}' GROUP BY DATE(created_at)) SELECT COALESCE(data.university, null)university,cte.created_at FROM cte LEFT JOIN data ON cte.created_at=data.created_at;'''
+    print(selected_university_query)
     selected_university_query_result=db.execute(selected_university_query).fetchall()
     for item in selected_university_query_result:
         technical,humanitarian=0,0
-        cleaned_data = [element.strip('{"}').split(',') for element in item[0]]
-        selected_university_id = (','.join([item for sublist in cleaned_data for item in sublist])).split(',')
-        for id in selected_university_id:
-            classfication_query=db.query(table.University).filter(table.University.id==id).first()
-            if (classfication_query) != None:
-                if classfication_query.classification == 'technical':
-                    technical+=1
-                elif classfication_query.classification == 'humanitarian':
-                    humanitarian+=1
-                else:
-                    raise HTTPException(
-                        status_code=403, detail=f"Not an expected classfication")
+        if item[0] != None:
+            cleaned_data = [element.strip('{"}').split(',') for element in item[0]]
+            selected_university_id = (','.join([item for sublist in cleaned_data for item in sublist])).split(',')
+            for id in selected_university_id:
+                classfication_query=db.query(table.University).filter(table.University.id==id).first()
+                if (classfication_query) != None:
+                    if classfication_query.classification == 'technical':
+                        technical+=1
+                    elif classfication_query.classification == 'humanitarian':
+                        humanitarian+=1
+                    else:
+                        raise HTTPException(
+                            status_code=403, detail=f"Not an expected classfication")
 
         results.append ({
             "technical":technical,
