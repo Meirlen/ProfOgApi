@@ -1006,8 +1006,8 @@ async def deleteClientById(param:input.DeleteUniversityById,db: Session = Depend
     query= f''' SELECT photos,videos,partners FROM university where id={param.id}'''
     queryresult=db.execute(query).fetchall()
     if queryresult != []:
-        photoname=f'''{queryresult[0]['photos']}'''
-        videoname=f'''{queryresult[0]['videos']}'''
+        photoname=f'''profogapi-stage/{queryresult[0]['photos']}'''
+        videoname=f'''profogapi-stage/{queryresult[0]['videos']}'''
         partners=json.loads(f'''{queryresult[0]['partners']}''')
         s3=deletefile()
         response=s3.delete_object(Bucket='profogapi-stage',Key=photoname)
@@ -1016,7 +1016,7 @@ async def deleteClientById(param:input.DeleteUniversityById,db: Session = Depend
             object_key = (i['Image']).rsplit("/", 1)
             partnersImageName=(object_key[-1])
             s3=deletefile()
-            response=s3.delete_object(Bucket='profogapi-stage',Key=partnersImageName)
+            response=s3.delete_object(Bucket='profogapi-stage',Key='profogapi-stage/'+partnersImageName)
         deletequery = f'''DELETE FROM university where id={param.id}'''
         db.execute(deletequery)
         db.commit()
