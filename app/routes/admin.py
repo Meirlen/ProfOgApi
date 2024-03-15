@@ -945,3 +945,56 @@ async def getUniversityClassification(
             "Date":item[1]
         })
     return results
+
+@router.get("/getUniversitySelections")
+async def getUniversitySelections(
+    universityid:Optional[int] = None,
+    classification: Optional[str] = None,
+    db: Session = Depends(database.get_db),
+    #current_user=Depends(get_user)
+    ):
+    results=[]
+    if universityid is None and classification is None: 
+        print(0)
+        university_id_query=f''' SELECT DISTINCT(universityid),classification FROM university;'''
+        university_id_query_result=db.execute(university_id_query).fetchall()
+    elif universityid is None and classification != None:
+        print(classification)
+        if classification == 'all':
+            condition = f''' WHERE classification ='technical' or classification = 'humanitarian' '''
+        else:
+            condition = f''' WHERE classification ='{classification}' '''
+        university_id_query=f''' SELECT DISTINCT(universityid),classification FROM university {condition};'''
+        university_id_query_result=db.execute(university_id_query).fetchall()
+    elif universityid != None and classification is None :
+        print(2)
+        university_id_query=f''' SELECT DISTINCT(universityid),classification FROM university where universityid='{universityid}';'''
+        university_id_query_result=db.execute(university_id_query).fetchall()
+    else :
+        print(3)
+        if classification == 'all':
+            condition = f''' classification ='technical' or classification = 'humanitarian' '''
+        else:
+            condition = f''' classification ='{classification}' '''
+        university_id_query=f''' SELECT DISTINCT(universityid),classification FROM university where universityid='{universityid}' AND ({condition});'''
+        university_id_query_result=db.execute(university_id_query).fetchall()
+    for item in university_id_query_result:
+        count_ru_result_data,count_kz_reult_data=0,0
+        ru_university_name=db.query(table.University).filter(table.University.language=='ru').filter(table.University.universityid==item[0]).first()
+        kz_university_name=db.query(table.University).filter(table.University.language=='kz').filter(table.University.universityid==item[0]).first()
+        if ru_university_name != None:
+            count_ru = f''' SELECT count(selecteduniversity) FROM selecteduniversity WHERE selecteduniversity LIKE '%{ru_university_name.id}%';'''
+            count_ru_result=db.execute(count_ru).fetchall()
+            count_ru_result_data=(count_ru_result[0])['count']
+        if kz_university_name != None:
+            count_kz = f''' SELECT count(selecteduniversity) FROM selecteduniversity WHERE selecteduniversity LIKE '%{kz_university_name.id}%';'''
+            count_kz_reult=db.execute(count_kz).fetchall()
+            count_kz_reult_data=(count_kz_reult[0])['count']
+        results.append({
+            "UniversityId":item[0],
+            "UniversityNameRu": "null" if ru_university_name is None else ru_university_name.universityname,
+            "UniversityNameKz": "null" if kz_university_name is None else kz_university_name.universityname,
+            "count" : count_ru_result_data+count_kz_reult_data,
+            "classification": "null" if ru_university_name is None else ru_university_name.classification,
+        })
+    return results
