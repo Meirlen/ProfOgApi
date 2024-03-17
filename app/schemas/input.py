@@ -88,3 +88,7 @@ class TestComplete(BaseModel):
 
 class DeleteUniversityById(BaseModel):
     id:int
+
+class ClientLogin(BaseModel):
+    email:str
+    password:str

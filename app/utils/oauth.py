@@ -70,3 +70,18 @@ def get_data(token: str = Depends(oauth2_scheme)):
 
 def get_current_token(token: str = Depends(oauth2_scheme)):
     return token
+
+def get_client(token: str = Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                                          detail=f"Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
+    try:
+
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        id: str = payload.get("email")
+        if id is None:
+            raise credentials_exception
+        # token_data = schemas.TokenData(id=id)
+    except JWTError:
+        raise credentials_exception
+
+    return id

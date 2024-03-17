@@ -201,24 +201,24 @@ async def superadminlogin(param: input.superadminlogin,db: Session = Depends(dat
         else :
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Invalid Credentials")
 
-@router.post("/clientlogin")
-async def clientlogin(param: input.clientlogin,db: Session = Depends(database.get_db)):
-    user = db.query(table.Client).filter(table.Client.email == param.email).first()
-    if not user:
-        return {"message": "Client is not available"}
-    else :
-        query = f'''SELECT password from client WHERE email='{param.email}';'''
-        data = db.execute(query).fetchall()
-        if param.password == ((data[0])['password']):
-            access_token = create_access_token(data={"user_phone": param.email})
-            return {"code": 200, 
-                    "Message" : "Logged in Successfully",
-                    "data":{
-                        "token": access_token,
-                        "token_type":"bearer"
-                    }}
-        else :
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Invalid Credentials")
+# @router.post("/clientlogin")
+# async def clientlogin(param: input.clientlogin,db: Session = Depends(database.get_db)):
+#     user = db.query(table.Client).filter(table.Client.email == param.email).first()
+#     if not user:
+#         return {"message": "Client is not available"}
+#     else :
+#         query = f'''SELECT password from client WHERE email='{param.email}';'''
+#         data = db.execute(query).fetchall()
+#         if param.password == ((data[0])['password']):
+#             access_token = create_access_token(data={"user_phone": param.email})
+#             return {"code": 200, 
+#                     "Message" : "Logged in Successfully",
+#                     "data":{
+#                         "token": access_token,
+#                         "token_type":"bearer"
+#                     }}
+#         else :
+#             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Invalid Credentials")
         
 @router.post("/verifyToken")
 async def verifyToken(data=Depends(get_data)):
