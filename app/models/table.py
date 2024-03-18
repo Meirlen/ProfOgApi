@@ -140,3 +140,13 @@ class SelectedUniversity(Base):
     selecteduniversity = Column(String, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True),
                         nullable=False)
+    
+class CareerGuidance(Base):
+    __tablename__ ="careerguidance"
+    id = Column(Integer, primary_key=True, nullable=False)  
+    name=Column(String, nullable=False)
+    phone_number = Column(BIGINT, nullable=False)
+    barcode = Column(String, nullable=False)
+    clientemail= Column(String, nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True),
+                        nullable=False)

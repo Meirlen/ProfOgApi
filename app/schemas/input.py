@@ -92,3 +92,11 @@ class DeleteUniversityById(BaseModel):
 class ClientLogin(BaseModel):
     email:str
     password:str
+
+class CareerGuidance(BaseModel):
+    name:str
+    phone:int
+    barcode:str
+
+class DeleteCareerGuidanceById(BaseModel):
+    id:int

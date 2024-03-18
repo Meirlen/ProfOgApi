@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from .. config import database as database
 from .. schemas import input
 from .. models import table
-from datetime import date
+from datetime import date,datetime
 from .. utils.oauth import create_access_token,get_client
 from typing import Optional
 
@@ -49,7 +49,7 @@ async def clientUniversity(fromdate:date,todate:date,db: Session = Depends(datab
     return results
 
 @router.get("/getSeletedUniversityUsers")
-async def getSeletedUniversityUsers(page:int,region:Optional[str]=None,id:Optional[int]=None,db: Session = Depends(database.get_db),current_user=Depends(get_client)):
+async def getSeletedUniversityUsers(page:int,region:Optional[str]=None,id:Optional[int]=None,db: Session = Depends(database.get_db),):
     results,count_of_users=[],0
     limit =5
     offset = (limit*page) - limit
@@ -88,3 +88,51 @@ async def getSeletedUniversityUsers(page:int,region:Optional[str]=None,id:Option
                 "classStream":data[10]
             })
     return results
+
+@router.post("/createCareerguidance")
+async def createCareerguidance(param: input.CareerGuidance,db: Session = Depends(database.get_db),current_user=Depends(get_client)):
+    user = db.query(table.CareerGuidance).filter(table.CareerGuidance.phone_number==param.phone).first()
+    if not user :
+        insertquery=f''' INSERT INTO careerguidance (name,phone_number,barcode,clientemail,created_at) VALUES ('{param.name}',{param.phone},'{param.barcode}','{current_user}','{datetime.now()}');'''
+        db.execute(insertquery)
+        db.commit()
+        return {"code": 200, 
+                "Message" : "Carrer Guidance created successfully"}
+    else:
+        raise HTTPException (
+                            status_code=403, detail=f"Phone number is already available")
+    
+
+@router.get("/getCareerGuidance")
+async def getCareerGuidance(page:int,id:Optional[int]=None,db: Session = Depends(database.get_db),current_user=Depends(get_client)):
+    results=[]
+    limit =10
+    offset = (limit*page) - limit
+    query=f''' SELECT * FROM careerguidance;'''
+    result=db.execute(query).fetchall()
+    results.append({
+        "Count of Carrer guidance specialists" : len(result)
+    })
+    if id != None :
+        query=f''' SELECT * FROM careerguidance where id ={id};'''
+        result=db.execute(query).fetchall()
+    else:
+        query=f''' SELECT * FROM careerguidance LIMIT {limit} OFFSET {offset};'''
+        result=db.execute(query).fetchall()
+    for item in result:
+        results.append({
+            "id":item[0],
+            "name":item[1],
+            "phone":item[2],
+            "barcode":item[3],
+            "client_emai":item[4],
+            "created_at":item[5]
+        })
+    return results
+
+@router.post("/deleteCarrerGuidanceById")
+async def deleteCarrerGuidanceById(param:input.DeleteCareerGuidanceById,db: Session = Depends(database.get_db),current_user=Depends(get_client)):
+    query = f''' DELETE FROM careerguidance where id = {param.id};'''
+    db.execute(query)
+    db.commit()
+    return {"Msg" : "Career Guidance deleted successfully"}
