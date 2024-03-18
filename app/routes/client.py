@@ -39,11 +39,45 @@ async def clientUniversity(fromdate:date,todate:date,db: Session = Depends(datab
         countdata=0
         for university in universityqueryresult:
             count_ru = f''' SELECT count(selecteduniversity) FROM selecteduniversity WHERE selecteduniversity LIKE '%{university[0]}%' AND DATE(created_at) ='{item[1]}';'''
-            print(count_ru)
             count_ru_result=db.execute(count_ru).fetchall()
             countdata+=(count_ru_result[0])['count']
         results.append({
             "Date":item[1],
             "count":countdata
         })
+    return results
+
+@router.get("/getSeletedUniversityUsers")
+async def getSeletedUniversityUsers(page:int,db: Session = Depends(database.get_db),current_user=Depends(get_client)):
+    results,count_of_users=[],0
+    limit =5
+    offset = (limit*page) - limit
+    client= db.query(table.Client).filter(table.Client.email==current_user).first()
+    universityquery=f''' SELECT id from university where universityid='{client.universityid}';'''
+    universityqueryresult=db.execute(universityquery).fetchall()
+    for item in universityqueryresult:
+        countuser= f''' SELECT id,firstname,lastname,phonenumber,email,region,locality,district,school,classtype,classstream FROM registration where university  LIKE '%{item[0]}%';'''
+        countuserresult=db.execute(countuser).fetchall()
+        count_of_users+=len(countuserresult)
+    results.append({
+        "Count of users": count_of_users
+    })
+    for item in universityqueryresult:
+        registrationquery= f''' SELECT id,firstname,lastname,phonenumber,email,region,locality,district,school,classtype,classstream FROM registration where university  LIKE '%{item[0]}%'  LIMIT {limit} OFFSET {offset};'''
+        print(registrationquery)
+        registrationqueryresult=db.execute(registrationquery).fetchall()
+        for data in registrationqueryresult:
+            results.append ({
+                "id":data[0],
+                "firstname":data[1],
+                "lastname":data[2],
+                "phonenumber":data[3],
+                "email":data[4],
+                "region":data[5],
+                "locality":data[6],
+                "district":data[7],
+                "school":data[8],
+                "classtype":data[9],
+                "classStream":data[10]
+            })
     return results
