@@ -49,7 +49,7 @@ async def clientUniversity(fromdate:date,todate:date,db: Session = Depends(datab
     return results
 
 @router.get("/getSeletedUniversityUsers")
-async def getSeletedUniversityUsers(page:int,region:Optional[str]=None,id:Optional[int]=None,db: Session = Depends(database.get_db),):
+async def getSeletedUniversityUsers(page:int,region:Optional[str]=None,id:Optional[int]=None,db: Session = Depends(database.get_db),current_user=Depends(get_client)):
     results,count_of_users=[],0
     limit =5
     offset = (limit*page) - limit
