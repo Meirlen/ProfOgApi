@@ -5,6 +5,7 @@ from .. schemas import input
 from .. models import table
 from datetime import date
 from .. utils.oauth import create_access_token,get_client
+from typing import Optional
 
 router = APIRouter(tags=['client'])
 
@@ -48,7 +49,7 @@ async def clientUniversity(fromdate:date,todate:date,db: Session = Depends(datab
     return results
 
 @router.get("/getSeletedUniversityUsers")
-async def getSeletedUniversityUsers(page:int,db: Session = Depends(database.get_db),current_user=Depends(get_client)):
+async def getSeletedUniversityUsers(page:int,region:Optional[str]=None,id:Optional[int]=None,db: Session = Depends(database.get_db),current_user=Depends(get_client)):
     results,count_of_users=[],0
     limit =5
     offset = (limit*page) - limit
@@ -63,8 +64,14 @@ async def getSeletedUniversityUsers(page:int,db: Session = Depends(database.get_
         "Count of users": count_of_users
     })
     for item in universityqueryresult:
-        registrationquery= f''' SELECT id,firstname,lastname,phonenumber,email,region,locality,district,school,classtype,classstream FROM registration where university  LIKE '%{item[0]}%'  LIMIT {limit} OFFSET {offset};'''
-        print(registrationquery)
+        if region !=None and id != None:
+            registrationquery= f''' SELECT id,firstname,lastname,phonenumber,email,region,locality,district,school,classtype,classstream FROM registration where university  LIKE '%{item[0]}%' and region ='{region}' and id={id} LIMIT {limit} OFFSET {offset};'''
+        elif region != None and id == None:
+            registrationquery= f''' SELECT id,firstname,lastname,phonenumber,email,region,locality,district,school,classtype,classstream FROM registration where university  LIKE '%{item[0]}%' and region ='{region}'  LIMIT {limit} OFFSET {offset};'''
+        elif region == None and id != None:
+            registrationquery= f''' SELECT id,firstname,lastname,phonenumber,email,region,locality,district,school,classtype,classstream FROM registration where university  LIKE '%{item[0]}%' and id ={id}  LIMIT {limit} OFFSET {offset};'''
+        else:
+            registrationquery= f''' SELECT id,firstname,lastname,phonenumber,email,region,locality,district,school,classtype,classstream FROM registration where university  LIKE '%{item[0]}%'  LIMIT {limit} OFFSET {offset};'''
         registrationqueryresult=db.execute(registrationquery).fetchall()
         for data in registrationqueryresult:
             results.append ({
