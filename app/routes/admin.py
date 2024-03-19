@@ -1009,7 +1009,7 @@ async def getUniversitySelections(
     return results
 
 @router.post("/deleteUniversityById")
-async def deleteClientById(param:input.DeleteUniversityById,db: Session = Depends(database.get_db)):
+async def deleteUniversityById(param:input.DeleteUniversityById,db: Session = Depends(database.get_db)):
     query= f''' SELECT photos,videos,partners FROM university where id={param.id}'''
     queryresult=db.execute(query).fetchall()
     if queryresult != []:
@@ -1031,3 +1031,74 @@ async def deleteClientById(param:input.DeleteUniversityById,db: Session = Depend
     else:
         raise HTTPException(
                             status_code=403, detail=f"ID is not available")
+    
+@router.post("/createSoundAssistant")
+async def createSoundAssistant(
+    request:Request,
+    mp3file: UploadFile = File(...),
+    mark:int  = Form(...),
+    pages :List[str] = Form(...),
+    db: Session = Depends(database.get_db)):
+    lang='ru'
+    query = f'''INSERT INTO soundassistant (mark,pages,language) VALUES ({mark},ARRAY {pages},'{lang}') RETURNING ID ;'''
+    data=db.execute(query).fetchall()
+    db.commit()
+    id=(data[0]['id'])
+    uploadphotoname=f'{id}_soundassistant'+'.mp3'
+    temp = NamedTemporaryFile(delete=False)
+    try:
+        try:
+            contents = mp3file.file.read()
+            with temp as f:
+                f.write(contents)
+        except Exception:
+            raise HTTPException(status_code=500, detail='Error on uploading the file')
+        finally:
+            mp3file.file.close()
+        obj=uploadfile()
+        obj.upload_file(temp.name,'profogapi-stage',uploadphotoname,ExtraArgs={'ContentType': "audio/mp3"})
+        obj.put_object_acl( ACL='public-read', Bucket='profogapi-stage',Key=uploadphotoname)
+    except Exception:
+        raise HTTPException(status_code=500, detail='Something went wrong')
+    finally:
+        os.remove(temp.name)
+    mp3link=f'https://profogapi-stage.blr1.digitaloceanspaces.com/profogapi-stage/{uploadphotoname}'
+    query = f'''UPDATE soundassistant SET mp3file='{mp3link}' where id ={id};'''
+    db.execute(query)
+    db.commit()
+    return {"ID": id,
+            "Msg" : "Client created successfully"}
+
+@router.get("/getSoundAssistant")
+async def getSoundAssistant(db: Session = Depends(database.get_db)):
+    result=[]
+    query = f'''SELECT * FROM soundassistant ;'''
+    query_data_result=db.execute(query).fetchall()
+    for item in query_data_result:
+        result.append({
+            "id":item[0],
+            "mp3file": item[1],
+            "mark":item[2],
+            "pages":item[3],
+            "language":item[4]
+        })
+
+    return result
+
+@router.post("/deleteSoundAssistant")
+async def deleteSoundAssistant(param:input.DeleteSoundAssistant,db: Session = Depends(database.get_db)):
+    soundassistant= db.query(table.SoundAssistant).filter(table.SoundAssistant.mark==param.mark).first()
+    if not soundassistant:
+        raise HTTPException (
+            status_code=403, detail=f"Sound assistant Id is not available"
+        )
+    filename=soundassistant.mp3file
+    parsed_url = urlparse(filename)
+    object_key = parsed_url.path.lstrip('/')
+    print(object_key)
+    s3=deletefile()
+    response=s3.delete_object(Bucket='profogapi-stage',Key=object_key)
+    deletequery = f'''DELETE FROM soundassistant where mark={param.mark} '''
+    db.execute(deletequery)
+    db.commit()
+    return {"Msg" : "Client Deleted successfully"}

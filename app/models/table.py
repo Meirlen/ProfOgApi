@@ -150,3 +150,11 @@ class CareerGuidance(Base):
     clientemail= Column(String, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True),
                         nullable=False)
+    
+class SoundAssistant(Base):
+    __tablename__ ="soundassistant"
+    id = Column(Integer, primary_key=True, nullable=False)  
+    mp3file=Column(String, nullable=True)
+    mark = Column(Integer, nullable=False)
+    pages = Column(String, nullable=False)
+    language= Column(String, nullable=False)

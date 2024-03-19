@@ -100,3 +100,6 @@ class CareerGuidance(BaseModel):
 
 class DeleteCareerGuidanceById(BaseModel):
     id:int
+
+class DeleteSoundAssistant(BaseModel):
+    mark:int
