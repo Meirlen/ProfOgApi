@@ -521,11 +521,15 @@ async def getAllClient(page:int,db: Session = Depends(database.get_db)):
 
 @router.post("/deleteClientById")
 async def deleteClientById(param:input.DeleteClient,db: Session = Depends(database.get_db)):
-    query= f''' SELECT photos FROM client where id={param.id}'''
-    queryresult=db.execute(query).fetchall()
-    filename=f'''{queryresult[0]['photos']}'''
+    client= db.query(table.Client).filter(table.Client.id==param.id).first()
+    if not client:
+        raise HTTPException (
+            status_code=403, detail=f"Client Id is not available"
+        )
+    filename=client.photos
     parsed_url = urlparse(filename)
     object_key = parsed_url.path.lstrip('/')
+    print(object_key)
     s3=deletefile()
     response=s3.delete_object(Bucket='profogapi-stage',Key=object_key)
     deletequery = f'''DELETE FROM client where id={param.id} '''
