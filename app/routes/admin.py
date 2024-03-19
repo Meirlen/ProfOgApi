@@ -793,9 +793,10 @@ async def getUniversityBySpecialityIdAndRegion(
     current_user=Depends(get_user)):
     results=[]
     lang=request.headers.get("lang")
-    query=f''' SELECT id,universityname,about,description,photos,city,grantdata,speciality FROM university where language='{lang}' and region='{region}';'''
+    query=f''' SELECT id,universityname,about,description,photos,city,grantdata,speciality,universityid FROM university where language='{lang}' and region='{region}';'''
     result=db.execute(query).fetchall()
     for item in result:
+        client=db.query(table.Client).filter(table.Client.universityid==item[8]).all()
         present = specialityId in item[7]
         if present:
             results.append({
@@ -805,7 +806,8 @@ async def getUniversityBySpecialityIdAndRegion(
                 "description":item[3],
                 "photos":"https://profogapi-stage.blr1.digitaloceanspaces.com/profogapi-stage/"+item[4],
                 "city":item[5],
-                "grant":item[6]
+                "grant":item[6],
+                "client" : False if client == [] else True,
             })
 
     return results
