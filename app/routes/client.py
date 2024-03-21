@@ -100,6 +100,7 @@ async def createCareerguidance(name :str = Form(...),
     barcode:str  = Form(...),
     db: Session = Depends(database.get_db),
     current_user=Depends(get_client)):
+    print(barcode)
     user = db.query(table.CareerGuidance).filter(table.CareerGuidance.phone_number==phone).first()
     barcode = db.query(table.CareerGuidance).filter(table.CareerGuidance.barcode==barcode).first()
     if not user and not barcode:

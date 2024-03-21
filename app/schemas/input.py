@@ -13,6 +13,7 @@ class Registration(BaseModel):
     school:str
     classType:str
     classStream:str
+    barcode:Optional[str]=None
 
 class VerfiyMobileOtp(BaseModel):
     otp:int

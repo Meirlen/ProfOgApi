@@ -39,7 +39,8 @@ async def registration (param: input.Registration,background_tasks: BackgroundTa
                                                          "district":param.district,
                                                          "school":param.school,
                                                          "classType":param.classType,
-                                                         "classStream":param.classStream
+                                                         "classStream":param.classStream,
+                                                         "barcode":param.barcode
                                                          })
         data=get_data(token)
         print(data.get('email'))
@@ -59,15 +60,19 @@ async def registration (param: input.Registration,background_tasks: BackgroundTa
 @router.post("/verify_mobile_otp")
 async def verify_mobile_otp(param: input.VerfiyMobileOtp,db: Session = Depends(database.get_db),headerdata=Depends(get_data)):
     phone=headerdata.get('phoneNumber')
-    print(phone)
     query = f'''SELECT code from mobile_otps WHERE phone_number={phone};'''
     data = db.execute(query).fetchall()
-    print (param.otp,(data[0])['code'])
     if str(param.otp)==((data[0])['code']):
-        print (True)
+        print (headerdata.get('barcode'))
         query=f'''INSERT INTO registration (firstName,lastName,phoneNumber,email,region,locality,district,school,classType,classStream,created_at) VALUES ('{(headerdata.get('firstName'))}','{headerdata.get('lastName')}','{headerdata.get('phoneNumber')}','{headerdata.get('email')}','{headerdata.get('region')}','{headerdata.get('locality')}','{headerdata.get('district')}','{headerdata.get('school')}','{headerdata.get('classType')}','{headerdata.get('classStream')}','{datetime.now()}');'''
         db.execute(query)
         db.commit()
+        barcode_query=db.query(table.CareerGuidance).filter(table.CareerGuidance.barcode==headerdata.get('barcode')).first()
+        if barcode_query:
+            print(True)
+            insert_query=f''' INSERT INTO careerguidancebarcode (barcode,user_phone) VALUES ('{headerdata.get('barcode')}','{headerdata.get('phoneNumber')}') ;'''
+            db.execute(insert_query)
+            db.commit()
         print(query)
         access_token = create_access_token(data={"user_phone": headerdata.get('phoneNumber')})
         return {"code": 200, 

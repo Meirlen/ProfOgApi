@@ -160,3 +160,9 @@ class SoundAssistant(Base):
     mark = Column(Integer, nullable=False)
     pages = Column(String, nullable=False)
     language= Column(String, nullable=False)
+
+class CareerGuidanceBarcode(Base):
+    __tablename__ ="careerguidancebarcode"
+    id = Column(Integer, primary_key=True, nullable=False)  
+    barcode=Column(String, nullable=True)
+    user_phone = Column(BIGINT, nullable=False)
