@@ -100,10 +100,9 @@ async def createCareerguidance(name :str = Form(...),
     barcode:str  = Form(...),
     db: Session = Depends(database.get_db),
     current_user=Depends(get_client)):
-    print(barcode)
     user = db.query(table.CareerGuidance).filter(table.CareerGuidance.phone_number==phone).first()
-    barcode = db.query(table.CareerGuidance).filter(table.CareerGuidance.barcode==barcode).first()
-    if not user and not barcode:
+    barcode_data = db.query(table.CareerGuidance).filter(table.CareerGuidance.barcode==barcode).first()
+    if not user and not barcode_data:
         insertquery=f''' INSERT INTO careerguidance (name,phone_number,barcode,clientemail,created_at) VALUES ('{name}',{phone},'{barcode}','{current_user}','{datetime.now()}') RETURNING ID ;'''
         data=db.execute(insertquery).fetchall()
         db.commit()
@@ -135,7 +134,7 @@ async def createCareerguidance(name :str = Form(...),
     elif user:
         raise HTTPException (
                             status_code=403, detail=f"Phone number is already available")
-    elif barcode:
+    elif barcode_data:
         raise HTTPException (
                             status_code=403, detail=f"Barcode is already available")
     
