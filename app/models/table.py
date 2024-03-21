@@ -97,6 +97,7 @@ class Client(Base):
 class SuperAdmin(Base):
     __tablename__ = "superadmin"
     id = Column(Integer, primary_key=True, nullable=False)
+    name=Column(String,nullable=False)
     email = Column(String, nullable=False)
     password = Column(String, nullable=False)
     

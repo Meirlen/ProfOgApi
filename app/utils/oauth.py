@@ -85,3 +85,18 @@ def get_client(token: str = Depends(oauth2_scheme)):
         raise credentials_exception
 
     return id
+
+def get_super_admin(token: str = Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                                          detail=f"Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
+    try:
+
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        id: str = payload.get("superadminemail")
+        if id is None:
+            raise credentials_exception
+        # token_data = schemas.TokenData(id=id)
+    except JWTError:
+        raise credentials_exception
+
+    return id

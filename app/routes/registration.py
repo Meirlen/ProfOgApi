@@ -9,7 +9,7 @@ from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from .. utils.sendmail import *
 from .. utils.sendsms import *
 from datetime import datetime
-from .. utils.oauth import create_access_token,get_user,create_access_token_for_otp,create_access_token_for_registration,get_data
+from .. utils.oauth import create_access_token,get_user,create_access_token_for_otp,create_access_token_for_registration,get_data,get_super_admin
 
 router = APIRouter(tags=['Login'])
 
@@ -188,13 +188,14 @@ async def superadminlogin(param: input.superadminlogin,db: Session = Depends(dat
     if not user:
         return {"message": "Super admin is not available"}
     else :
-        query = f'''SELECT password from superadmin WHERE email='{param.email}';'''
+        query = f'''SELECT password,name from superadmin WHERE email='{param.email}';'''
         data = db.execute(query).fetchall()
         if param.password == ((data[0])['password']):
-            access_token = create_access_token(data={"user_phone": param.email})
+            access_token = create_access_token(data={"superadminemail": param.email})
             return {"code": 200, 
                     "Message" : "Logged in Successfully",
                     "data":{
+                        "Name": (data[0])['name'],
                         "token": access_token,
                         "token_type":"bearer"
                     }}
@@ -222,4 +223,8 @@ async def superadminlogin(param: input.superadminlogin,db: Session = Depends(dat
         
 @router.post("/verifyToken")
 async def verifyToken(data=Depends(get_data)):
+    return True
+
+@router.post("/verifySuperAdminToken")
+async def verifySuperAdminToken (data=Depends(get_super_admin)):
     return True

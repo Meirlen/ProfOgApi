@@ -13,7 +13,7 @@ from .. utils.uploadfiletospaces import uploadfile,deletefile
 from fastapi import File, UploadFile,Form
 from tempfile import NamedTemporaryFile
 from urllib.parse import urlparse
-from .. utils.oauth import get_user,get_current_token
+from .. utils.oauth import get_user,get_super_admin
 import random,ast
 from datetime import datetime,date,timedelta
 
@@ -22,7 +22,7 @@ router = APIRouter(tags=['admin'])
 
 
 @router.post("/count_user_on_each_day")
-async def count_user_on_each_day(param:input.CountUserOnEachDay):
+async def count_user_on_each_day(param:input.CountUserOnEachDay,superadmin=Depends(get_super_admin)):
 
     query=f'''WITH RECURSIVE cte AS (SELECT DATE(mydate) as created_at FROM generate_series('{param.from_date}', '{param.to_date}', INTERVAL '1 day') d (mydate) ORDER BY created_at DESC) , data AS (SELECT count(id) as id,DATE(created_at) as created_at FROM registration WHERE created_at > '{param.from_date}' AND created_at < '{param.to_date}' GROUP BY DATE(created_at)) SELECT cte.created_at,COALESCE(data.id, 0)count_registration FROM cte LEFT JOIN data ON cte.created_at=data.created_at;'''
     connection = engine.connect()    
@@ -32,7 +32,7 @@ async def count_user_on_each_day(param:input.CountUserOnEachDay):
     return data
 
 @router.post("/getRegisteredUsers")
-async def getRegisteredUsers(param:input.FilterByIdOrRegion,db: Session = Depends(database.get_db)):
+async def getRegisteredUsers(param:input.FilterByIdOrRegion,db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
     result=[]
     limit =20
     offset = (limit*param.page) - limit
@@ -92,7 +92,7 @@ async def getRegisteredUsers(param:input.FilterByIdOrRegion,db: Session = Depend
     return result
 
 @router.post("/createType")
-async def createType(param:input.CreateType,db: Session = Depends(database.get_db)):
+async def createType(param:input.CreateType,db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
     result=[]
     query = table.Type(type=param.type)
     db.add(query)
@@ -109,7 +109,7 @@ async def createType(param:input.CreateType,db: Session = Depends(database.get_d
     return result
 
 @router.post("/createTestTitle")
-async def createTestTitle(request:Request,param:input.CreateTitle,db: Session = Depends(database.get_db)):
+async def createTestTitle(request:Request,param:input.CreateTitle,db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
     lang=request.headers.get("lang")
     result=[]
     query = table.Test(typeid=param.typeid,title=param.Title,language=lang)
@@ -153,7 +153,7 @@ async def getTypeAndTitle(request:Request,page: int,db: Session = Depends(databa
     return result
 
 @router.get("/getAllTypeAndTitle")
-async def getTypeAndTitle(db: Session = Depends(database.get_db)):
+async def getTypeAndTitle(db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
     result=[]
     query = f'''SELECT test.id,type.type,test.title,test.language FROM type JOIN test ON type.id=test.typeid;'''
     query_data_result=db.execute(query).fetchall()
@@ -168,7 +168,7 @@ async def getTypeAndTitle(db: Session = Depends(database.get_db)):
     return result
 
 @router.get("/getAllType")
-async def getAllType(db: Session = Depends(database.get_db)):
+async def getAllType(db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
     result=[]
     query = f'''SELECT * FROM type'''
     query_data_result=db.execute(query).fetchall()
@@ -182,21 +182,21 @@ async def getAllType(db: Session = Depends(database.get_db)):
 
 
 @router.post("/updateType")
-async def updateType(param:input.UpdateType,db: Session = Depends(database.get_db)):
+async def updateType(param:input.UpdateType,db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
     query = f'''UPDATE type SET type='{param.type}' where id={param.id};'''
     db.execute(query)
     db.commit()
     return {"Msg" : "Type updated successfully"}
 
 @router.post("/deleteType")
-async def deleteType(param:input.DeleteType,db: Session = Depends(database.get_db)):
+async def deleteType(param:input.DeleteType,db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
     query = f'''DELETE FROM type where id={param.id};'''
     db.execute(query)
     db.commit()
     return {"Msg" : "Type Deleted successfully"}
 
 @router.post("/deleteTest")
-async def deleteTest(param:input.DeleteTest,db: Session = Depends(database.get_db)):
+async def deleteTest(param:input.DeleteTest,db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
     query = f'''DELETE FROM test where id={param.id};'''
     print(query)
     db.execute(query)
@@ -322,7 +322,7 @@ async def createUniversity(request:Request,
     classification:str  = Form(...),
     speciality: List[str] = File(...),
     region:str  = Form(...),
-    db: Session = Depends(database.get_db)):
+    db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
     lang=request.headers.get("lang")
     datapartnersTitle = partnersTitle[0].split(',')
     datapartnersSalary = partnersSalary[0].split(',')
@@ -439,7 +439,7 @@ async def getUniversityById(id:int,db: Session = Depends(database.get_db)):
     return result
 
 @router.get("/getAllUniversity")
-async def getAllUniversity(db: Session = Depends(database.get_db)):
+async def getAllUniversity(db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
     result=[]
     query = f'''SELECT id,universityname,language,universityid FROM university; '''
     query_data_result=db.execute(query).fetchall()
@@ -460,7 +460,7 @@ async def createClient(
     reservePhone :str  = Form(...),
     password:str = Form(...),
     universityid:int = Form(...),
-    db: Session = Depends(database.get_db)):
+    db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
     query = f'''INSERT INTO client (bin,email,reservephone,password,universityid) VALUES ('{BIN}','{email}','{reservePhone}','{password}',{universityid}) RETURNING ID ;'''
     data=db.execute(query).fetchall()
     db.commit()
@@ -492,7 +492,7 @@ async def createClient(
             "Msg" : "Client created successfully"}
 
 @router.get("/getAllClient")
-async def getAllClient(page:int,db: Session = Depends(database.get_db)):
+async def getAllClient(page:int,db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
     result=[]
     limit =20
     offset = (limit*page) - limit
@@ -552,7 +552,7 @@ async def getAllType(db: Session = Depends(database.get_db)):
 
 
 @router.get("/getSpeciality")
-async def getSpeciality(typeid:int,db: Session = Depends(database.get_db)):
+async def getSpeciality(typeid:int,db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
     result=[]
     query = f'''SELECT id,specialtyname FROM speciality where typeid={typeid};'''
     query_data_result=db.execute(query).fetchall()
@@ -565,7 +565,7 @@ async def getSpeciality(typeid:int,db: Session = Depends(database.get_db)):
     return result
 
 @router.post("/deleteSpeciality")
-async def deleteSpeciality(param:input.DeleteSpeciality,db: Session = Depends(database.get_db)):
+async def deleteSpeciality(param:input.DeleteSpeciality,db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
     query = f'''DELETE FROM speciality where id={param.id};'''
     db.execute(query)
     db.commit()
@@ -621,7 +621,7 @@ async def returnTest(request:Request,db: Session = Depends(database.get_db), cur
     return testdata
 
 @router.post("/createTypeDescription")
-async def createTypeDescription(request:Request,param:input.CreateTypeDescription,db: Session = Depends(database.get_db)):
+async def createTypeDescription(request:Request,param:input.CreateTypeDescription,db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
     lang=request.headers.get("lang")
     result=[]
     query = f'''INSERT INTO typedescription (typeid,description,lang) VALUES ({param.typeid},'{param.description}','{lang}') RETURNING ID ;'''
@@ -641,7 +641,7 @@ async def createTypeDescription(request:Request,param:input.CreateTypeDescriptio
     return result
 
 @router.get("/getTypeDescription")
-async def getTypeDescription(typeid:int,db: Session = Depends(database.get_db)):
+async def getTypeDescription(typeid:int,db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
     result=[]
     query = f'''SELECT * FROM typedescription where typeid={typeid};'''
     query_data_result=db.execute(query).fetchall()
@@ -656,7 +656,7 @@ async def getTypeDescription(typeid:int,db: Session = Depends(database.get_db)):
     return result
 
 @router.post("/deleteTypeDescription")
-async def deleteTypeDescription(param:input.DeleteTypeDescription,db: Session = Depends(database.get_db)):
+async def deleteTypeDescription(param:input.DeleteTypeDescription,db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
     query = f'''DELETE FROM typedescription where id={param.id};'''
     db.execute(query)
     db.commit()
@@ -860,7 +860,7 @@ async def getStatistics(
     from_date:date,
     to_date:date,
     db: Session = Depends(database.get_db),
-    #current_user=Depends(get_user)
+    superadmin=Depends(get_super_admin)
     ):
     results=[]
     current_date = from_date
@@ -906,7 +906,7 @@ async def getSelectedUniversity(
 @router.get("/getUniversityNameAndUniversityId")
 async def getUniversityNameAndUniversityId(
     db: Session = Depends(database.get_db),
-    #current_user=Depends(get_user)
+    superadmin=Depends(get_super_admin)
     ):
     results=[]
     university_id_query=f''' SELECT DISTINCT(universityid) FROM university;'''
@@ -926,7 +926,7 @@ async def getUniversityClassification(
     fromdate:date,
     todate:date,
     db: Session = Depends(database.get_db),
-    #current_user=Depends(get_user)
+    superadmin=Depends(get_super_admin)
     ):
     results=[]
     selected_university_query=f'''WITH RECURSIVE cte AS (SELECT DATE(mydate) as created_at FROM generate_series('{fromdate}', '{todate}', INTERVAL '1 day') d (mydate) ORDER BY created_at DESC) , data AS (SELECT ARRAY_AGG(selecteduniversity) as university,Date(created_at) as created_at FROM selecteduniversity where DATE(created_at) >= '{fromdate}' and DATE(created_at) <= '{todate}' GROUP BY DATE(created_at)) SELECT COALESCE(data.university, null)university,cte.created_at FROM cte LEFT JOIN data ON cte.created_at=data.created_at;'''
@@ -960,7 +960,7 @@ async def getUniversitySelections(
     universityid:Optional[int] = None,
     classification: Optional[str] = None,
     db: Session = Depends(database.get_db),
-    #current_user=Depends(get_user)
+    superadmin=Depends(get_super_admin)
     ):
     results=[]
     if universityid is None and classification is None: 
@@ -1009,7 +1009,7 @@ async def getUniversitySelections(
     return results
 
 @router.post("/deleteUniversityById")
-async def deleteUniversityById(param:input.DeleteUniversityById,db: Session = Depends(database.get_db)):
+async def deleteUniversityById(param:input.DeleteUniversityById,db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
     query= f''' SELECT photos,videos,partners FROM university where id={param.id}'''
     queryresult=db.execute(query).fetchall()
     if queryresult != []:
@@ -1038,8 +1038,8 @@ async def createSoundAssistant(
     mp3file: UploadFile = File(...),
     mark:int  = Form(...),
     pages :List[str] = Form(...),
-    db: Session = Depends(database.get_db)):
-    lang='ru'
+    db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
+    lang=request.headers.get("lang")
     query = f'''INSERT INTO soundassistant (mark,pages,language) VALUES ({mark},ARRAY {pages},'{lang}') RETURNING ID ;'''
     data=db.execute(query).fetchall()
     db.commit()
@@ -1070,7 +1070,7 @@ async def createSoundAssistant(
             "Msg" : "Client created successfully"}
 
 @router.get("/getSoundAssistant")
-async def getSoundAssistant(db: Session = Depends(database.get_db)):
+async def getSoundAssistant(db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
     result=[]
     query = f'''SELECT * FROM soundassistant ;'''
     query_data_result=db.execute(query).fetchall()
@@ -1086,7 +1086,7 @@ async def getSoundAssistant(db: Session = Depends(database.get_db)):
     return result
 
 @router.post("/deleteSoundAssistant")
-async def deleteSoundAssistant(param:input.DeleteSoundAssistant,db: Session = Depends(database.get_db)):
+async def deleteSoundAssistant(param:input.DeleteSoundAssistant,db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
     soundassistant= db.query(table.SoundAssistant).filter(table.SoundAssistant.mark==param.mark).first()
     if not soundassistant:
         raise HTTPException (
@@ -1101,4 +1101,35 @@ async def deleteSoundAssistant(param:input.DeleteSoundAssistant,db: Session = De
     deletequery = f'''DELETE FROM soundassistant where mark={param.mark} '''
     db.execute(deletequery)
     db.commit()
-    return {"Msg" : "Client Deleted successfully"}
+    return {"Msg" : "Sound Assistant Deleted successfully"}
+
+@router.get("/getSelectedSpecialitiesCount")
+async def getSelectedSpecialitiesCount(
+    fromdate:date,
+    todate:date,
+    db: Session = Depends(database.get_db),
+    #current_user=Depends(get_user)
+    ):
+    results=[]
+    Selected_specialities_query=f'''WITH RECURSIVE cte AS (SELECT DATE(mydate) as created_at FROM generate_series('{fromdate}', '{todate}', INTERVAL '1 day') d (mydate) ORDER BY created_at DESC) , data AS (SELECT ARRAY_AGG(selectedspecialities) as speciality,Date(created_at) as created_at FROM selectedspecialities where DATE(created_at) >= '{fromdate}' and DATE(created_at) <= '{todate}' GROUP BY DATE(created_at)) SELECT COALESCE(data.speciality, null)speciality,cte.created_at FROM cte LEFT JOIN data ON cte.created_at=data.created_at;'''
+    Selected_specialities_query_result=db.execute(Selected_specialities_query).fetchall()
+    for item in Selected_specialities_query_result:
+        selected_speciality_id,specialities=[],[]
+        if item[0] != None:
+            cleaned_data = [element.strip('{"}').split(',') for element in item[0]]
+            selected_speciality_id = (','.join([item for sublist in cleaned_data for item in sublist])).split(',')
+            for speciality in selected_speciality_id:
+                speciality_name_query=f''' SELECT specialtyname,barcode FROM speciality where id = {speciality};'''
+                speciality_name_query_results=db.execute(speciality_name_query).fetchall()
+                for name in speciality_name_query_results:
+                    count_query=f''' SELECT count(barcode) FROM speciality where barcode='{name[1]}';'''
+                    count_query_result=db.execute(count_query).fetchall()
+                    specialities.append({
+                        "SpecialityName":name[0],
+                        "Count":(count_query_result[0])['count']
+                    })
+        results.append({
+            "Date":item[1],
+            "speciality": specialities
+        })
+    return results
