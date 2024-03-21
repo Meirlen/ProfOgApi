@@ -147,8 +147,9 @@ class CareerGuidance(Base):
     id = Column(Integer, primary_key=True, nullable=False)  
     name=Column(String, nullable=False)
     phone_number = Column(BIGINT, nullable=False)
-    barcode = Column(String, nullable=False)
+    barcode = Column(String, unique=True,nullable=False)
     clientemail= Column(String, nullable=False)
+    qrcode=Column(String, nullable=True)
     created_at = Column(TIMESTAMP(timezone=True),
                         nullable=False)
     

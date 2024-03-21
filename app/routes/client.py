@@ -6,7 +6,11 @@ from .. models import table
 from datetime import date,datetime
 from .. utils.oauth import create_access_token,get_client
 from typing import Optional
-
+from tempfile import NamedTemporaryFile
+from fastapi import File, UploadFile,Form
+from urllib.parse import urlparse
+from .. utils.uploadfiletospaces import uploadfile,deletefile
+import os
 router = APIRouter(tags=['client'])
 
 @router.post("/clientlogin")
@@ -90,17 +94,49 @@ async def getSeletedUniversityUsers(page:int,region:Optional[str]=None,id:Option
     return results
 
 @router.post("/createCareerguidance")
-async def createCareerguidance(param: input.CareerGuidance,db: Session = Depends(database.get_db),current_user=Depends(get_client)):
-    user = db.query(table.CareerGuidance).filter(table.CareerGuidance.phone_number==param.phone).first()
-    if not user :
-        insertquery=f''' INSERT INTO careerguidance (name,phone_number,barcode,clientemail,created_at) VALUES ('{param.name}',{param.phone},'{param.barcode}','{current_user}','{datetime.now()}');'''
-        db.execute(insertquery)
+async def createCareerguidance(name :str = Form(...),
+    qrcode: UploadFile = File(...),
+    phone:int  = Form(...),
+    barcode:str  = Form(...),
+    db: Session = Depends(database.get_db),
+    current_user=Depends(get_client)):
+    user = db.query(table.CareerGuidance).filter(table.CareerGuidance.phone_number==phone).first()
+    barcode = db.query(table.CareerGuidance).filter(table.CareerGuidance.barcode==barcode).first()
+    if not user and not barcode:
+        insertquery=f''' INSERT INTO careerguidance (name,phone_number,barcode,clientemail,created_at) VALUES ('{name}',{phone},'{barcode}','{current_user}','{datetime.now()}') RETURNING ID ;'''
+        data=db.execute(insertquery).fetchall()
+        db.commit()
+        id=(data[0]['id'])
+        uploadphotoname=f'{id}_qrcode'+'.jpeg'
+        temp = NamedTemporaryFile(delete=False)
+        try:
+            try:
+                contents = qrcode.file.read()
+                with temp as f:
+                    f.write(contents)
+            except Exception:
+                raise HTTPException(status_code=500, detail='Error on uploading the file')
+            finally:
+                qrcode.file.close()
+            obj=uploadfile()
+            obj.upload_file(temp.name,'profogapi-stage',uploadphotoname,ExtraArgs={'ContentType': "image/jpeg"})
+            obj.put_object_acl( ACL='public-read', Bucket='profogapi-stage',Key=uploadphotoname)
+        except Exception:
+            raise HTTPException(status_code=500, detail='Something went wrong')
+        finally:
+            os.remove(temp.name)
+        qrcodelink=f'https://profogapi-stage.blr1.digitaloceanspaces.com/profogapi-stage/{uploadphotoname}'
+        query = f'''UPDATE careerguidance SET qrcode='{qrcodelink}' where id ={id};'''
+        db.execute(query)
         db.commit()
         return {"code": 200, 
                 "Message" : "Carrer Guidance created successfully"}
-    else:
+    elif user:
         raise HTTPException (
                             status_code=403, detail=f"Phone number is already available")
+    elif barcode:
+        raise HTTPException (
+                            status_code=403, detail=f"Barcode is already available")
     
 
 @router.get("/getCareerGuidance")
@@ -126,12 +162,24 @@ async def getCareerGuidance(page:int,id:Optional[int]=None,db: Session = Depends
             "phone":item[2],
             "barcode":item[3],
             "client_emai":item[4],
-            "created_at":item[5]
+            "qrcode":item[5],
+            "created_at":item[6]
         })
     return results
 
 @router.post("/deleteCarrerGuidanceById")
 async def deleteCarrerGuidanceById(param:input.DeleteCareerGuidanceById,db: Session = Depends(database.get_db),current_user=Depends(get_client)):
+    carrer= db.query(table.CareerGuidance).filter(table.CareerGuidance.id==param.id).first()
+    if not carrer:
+        raise HTTPException (
+            status_code=403, detail=f"Carrer Guidance Id is not available"
+        )
+    filename=carrer.qrcode
+    parsed_url = urlparse(filename)
+    object_key = parsed_url.path.lstrip('/')
+    print(object_key)
+    s3=deletefile()
+    response=s3.delete_object(Bucket='profogapi-stage',Key=object_key)
     query = f''' DELETE FROM careerguidance where id = {param.id};'''
     db.execute(query)
     db.commit()
