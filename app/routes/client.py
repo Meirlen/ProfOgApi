@@ -25,9 +25,13 @@ async def clientlogin(param: input.ClientLogin,db: Session = Depends(database.ge
             raise HTTPException(
                             status_code=403, detail=f"Email and Password doesn't match")
         access_token = create_access_token(data={"email": param.email})
+        ru_university_name=db.query(table.University).filter(table.University.language=='ru').filter(table.University.universityid==user.universityid).first()
+        kz_university_name=db.query(table.University).filter(table.University.language=='kz').filter(table.University.universityid==user.universityid).first()
         return {"code": 200, 
                 "Message" : "Client Login successfully ",
                 "data":{
+                        "UniversityNameRu": "null" if ru_university_name is None else ru_university_name.universityname,
+                        "UniversityNameKz": "null" if kz_university_name is None else kz_university_name.universityname,
                         "token": access_token,
                         "token_type":"bearer"}}
         
@@ -184,3 +188,34 @@ async def deleteCarrerGuidanceById(param:input.DeleteCareerGuidanceById,db: Sess
     db.execute(query)
     db.commit()
     return {"Msg" : "Career Guidance deleted successfully"}
+
+@router.get("/getUserBasedOnBarcode")
+async def getUserBasedOnBarcode(page:int,barcode:str,db: Session = Depends(database.get_db),current_user=Depends(get_client)):
+    results=[]
+    limit =10
+    offset = (limit*page) - limit
+    query=f''' SELECT user_phone FROM careerguidancebarcode where barcode = '{barcode}' LIMIT {limit} OFFSET {offset};'''
+    result=db.execute(query).fetchall()
+    for data in result:
+        user_query=f'''SELECT * FROM registration where phonenumber = '{data[0]}';'''
+        user_query_result=db.execute(user_query).fetchall()  
+        print(user_query_result)      
+        for item in user_query_result:
+            results.append({
+                "id": item[0],
+                "First Name": item[1],
+                "Last Name": item[2],
+                "Phone Number": item[3],
+                "Email": item[4],
+                "Region":item[5],
+                "Locality":item[6],
+                "District":item[7],
+                "School": item[8],
+                "Class": item[9],
+                "Class Stream": item[10],
+                "test": item[11],
+                "universityname": item[12],
+                "specialityname":item[13],
+                "created_at": item[14]
+            })
+    return results

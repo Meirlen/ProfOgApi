@@ -1038,7 +1038,9 @@ async def createSoundAssistant(
     mp3file: UploadFile = File(...),
     mark:int  = Form(...),
     pages :List[str] = Form(...),
-    db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
+    db: Session = Depends(database.get_db),
+    superadmin=Depends(get_super_admin)
+    ):
     lang=request.headers.get("lang")
     query = f'''INSERT INTO soundassistant (mark,pages,language) VALUES ({mark},ARRAY {pages},'{lang}') RETURNING ID ;'''
     data=db.execute(query).fetchall()
@@ -1070,7 +1072,9 @@ async def createSoundAssistant(
             "Msg" : "Client created successfully"}
 
 @router.get("/getSoundAssistant")
-async def getSoundAssistant(db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
+async def getSoundAssistant(db: Session = Depends(database.get_db),
+                            superadmin=Depends(get_super_admin)
+                            ):
     result=[]
     query = f'''SELECT * FROM soundassistant ;'''
     query_data_result=db.execute(query).fetchall()
@@ -1079,7 +1083,7 @@ async def getSoundAssistant(db: Session = Depends(database.get_db),superadmin=De
             "id":item[0],
             "mp3file": item[1],
             "mark":item[2],
-            "pages":item[3],
+            "pages":item[3].strip('{}').split(','),
             "language":item[4]
         })
 
@@ -1133,3 +1137,19 @@ async def getSelectedSpecialitiesCount(
             "speciality": specialities
         })
     return results
+
+@router.post("/getSoundAssistantMp3link")
+async def getSoundAssistantMp3link(request:Request,pages:str,
+                            db: Session = Depends(database.get_db),
+                            #superadmin=Depends(get_super_admin)
+                            ):
+    result=[]
+    lang=request.headers.get("lang")
+    query=f''' SELECT mp3file FROM soundassistant WHERE pages LIKE '%{pages}%' and language='{lang}';'''
+    queryresult=db.execute(query).fetchall()
+    for item in queryresult:
+        result.append({
+            "Mp3 Link": item[0]
+        })
+
+    return result
