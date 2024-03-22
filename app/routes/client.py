@@ -197,7 +197,7 @@ async def getUserBasedOnBarcode(page:int,barcode:str,db: Session = Depends(datab
     total_count_query= f''' SELECT user_phone FROM careerguidancebarcode where barcode = '{barcode}';'''
     total_count_query_result = db.execute(total_count_query).fetchall()
     results.append({
-        "Total Users": len(total_count_query)
+        "Total Users": len(total_count_query_result)
     })
     query=f''' SELECT user_phone FROM careerguidancebarcode where barcode = '{barcode}' LIMIT {limit} OFFSET {offset};'''
     result=db.execute(query).fetchall()
