@@ -123,9 +123,13 @@ async def verify_mobile_otp(param: input.VerfiyMobilLogineOtp,db: Session = Depe
     if str(param.otp)==((data[0])['code']):
         print (True)
         access_token = create_access_token(data={"user_phone": current_user})
+        registration=db.query(table.Registration).filter(table.Registration.phonenumber==current_user).first()
+        print(registration.firstname,registration.lastname)
         return {"code": 200,
                 "Message" : "OTP verified successfully",
                 "data":{
+                        "Firstname":registration.firstname,
+                        "Lastname": registration.lastname,
                         "token": access_token,
                         "token_type":"bearer"}}
     else :
