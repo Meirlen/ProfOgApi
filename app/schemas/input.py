@@ -104,3 +104,30 @@ class DeleteCareerGuidanceById(BaseModel):
 
 class DeleteSoundAssistant(BaseModel):
     mark:int
+
+class CreateRegion(BaseModel):
+    regionName:str
+
+class CreateDistrict(BaseModel):
+    districtName:str
+    regionid:int
+
+class CreateLocality(BaseModel):
+    localityName:str
+    districtid:int
+
+class CreateSchool(BaseModel):
+    schoolName:str
+    localityid:int
+
+class DeleteRegion(BaseModel):
+    regionid:int
+
+class DeleteDistrict(BaseModel):
+    districtid:int
+
+class DeleteLocality(BaseModel):
+    localityid:int
+
+class DeleteSchool(BaseModel):
+    schoolid:int

@@ -166,3 +166,26 @@ class CareerGuidanceBarcode(Base):
     id = Column(Integer, primary_key=True, nullable=False)  
     barcode=Column(String, nullable=True)
     user_phone = Column(BIGINT, nullable=False)
+
+class Region(Base):
+    __tablename__ ="region"
+    id = Column(Integer, primary_key=True, nullable=False)  
+    regionname=Column(String, nullable=False)
+
+class District(Base):
+    __tablename__ ="district"
+    id = Column(Integer, primary_key=True, nullable=False)  
+    districtname=Column(String, nullable=False)
+    regionid=Column(Integer,nullable=False)
+
+class Locality(Base):
+    __tablename__ ="locality"
+    id = Column(Integer, primary_key=True, nullable=False)  
+    localityname=Column(String, nullable=False)
+    districtid=Column(Integer,nullable=False)
+
+class School(Base):
+    __tablename__ ="school"
+    id = Column(Integer, primary_key=True, nullable=False)  
+    schoolname=Column(String, nullable=False)
+    localityid=Column(Integer,nullable=False)

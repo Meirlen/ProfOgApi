@@ -1153,3 +1153,156 @@ async def getSoundAssistantMp3link(request:Request,pages:str,
         })
 
     return result
+
+@router.post("/createRegion")
+async def createRegion(param:input.CreateRegion,db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
+    result=[]
+    query = f'''INSERT INTO region (regionname) VALUES ('{param.regionName}') RETURNING ID ;'''
+    data=db.execute(query).fetchall()
+    db.commit()
+    id=(data[0]['id'])
+    query_data = f'''SELECT * FROM region WHERE id={id} ;'''
+    query_data_result=db.execute(query_data).fetchall()
+    for item in query_data_result:
+        result.append({
+            "id":item[0],
+            "name of region": item[1]
+        })
+
+    return result
+
+@router.post("/createDistrict")
+async def createDistrict(param:input.CreateDistrict,db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
+    result=[]
+    query = f'''INSERT INTO district (districtname,regionid) VALUES ('{param.districtName}',{param.regionid}) RETURNING ID ;'''
+    data=db.execute(query).fetchall()
+    db.commit()
+    id=(data[0]['id'])
+    query_data = f'''SELECT * FROM district WHERE id={id} ;'''
+    query_data_result=db.execute(query_data).fetchall()
+    for item in query_data_result:
+        result.append({
+            "id":item[0],
+            "name of District": item[1],
+            "Region Id": item[2]
+        })
+
+    return result
+
+@router.post("/createLocality")
+async def createLocality(param:input.CreateLocality,db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
+    result=[]
+    query = f'''INSERT INTO locality (localityname,districtid) VALUES ('{param.localityName}',{param.districtid}) RETURNING ID ;'''
+    data=db.execute(query).fetchall()
+    db.commit()
+    id=(data[0]['id'])
+    query_data = f'''SELECT * FROM locality WHERE id={id} ;'''
+    query_data_result=db.execute(query_data).fetchall()
+    for item in query_data_result:
+        result.append({
+            "id":item[0],
+            "name of Locality": item[1],
+            "District Id": item[2]
+        })
+
+    return result
+
+@router.post("/createSchool")
+async def createSchool(param:input.CreateSchool,db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
+    result=[]
+    query = f'''INSERT INTO school (schoolname,localityid) VALUES ('{param.schoolName}',{param.localityid}) RETURNING ID ;'''
+    data=db.execute(query).fetchall()
+    db.commit()
+    id=(data[0]['id'])
+    query_data = f'''SELECT * FROM school WHERE id={id} ;'''
+    query_data_result=db.execute(query_data).fetchall()
+    for item in query_data_result:
+        result.append({
+            "id":item[0],
+            "name of School": item[1],
+            "Locality Id": item[2]
+        })
+
+    return result
+
+@router.get("/getAllRegion")
+async def getAllRegion(db: Session = Depends(database.get_db)
+                            ):
+    result=[]
+    query = f'''SELECT * FROM region ;'''
+    query_data_result=db.execute(query).fetchall()
+    for item in query_data_result:
+        result.append({
+            "id":item[0],
+            "name of region": item[1]
+        })
+
+    return result
+
+@router.get("/getDistrictByRegionId")
+async def getDistrictByRegionId(regionid:int,db: Session = Depends(database.get_db)):
+    result=[]
+    query = f'''SELECT * FROM district where regionid={regionid} ;'''
+    query_data_result=db.execute(query).fetchall()
+    for item in query_data_result:
+        result.append({
+            "id":item[0],
+            "name of District": item[1]
+        })
+
+    return result
+
+@router.get("/getLocalityByDistrictId")
+async def getLocalityByDistrictId(districtid:int,db: Session = Depends(database.get_db)):
+    result=[]
+    query = f'''SELECT * FROM locality   where districtid={districtid} ;'''
+    query_data_result=db.execute(query).fetchall()
+    for item in query_data_result:
+        result.append({
+            "id":item[0],
+            "name of Locality": item[1]
+        })
+
+    return result
+
+@router.get("/getSchoolByLocalityId")
+async def getSchoolByLocalityId(localityid:int,db: Session = Depends(database.get_db)):
+    result=[]
+    query = f'''SELECT * FROM school   where localityid={localityid} ;'''
+    query_data_result=db.execute(query).fetchall()
+    for item in query_data_result:
+        result.append({
+            "id":item[0],
+            "name of School": item[1]
+        })
+
+    return result
+
+@router.post("/deleteRegion")
+async def deleteRegion(param:input.DeleteRegion,db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
+    query = f'''DELETE FROM region where id={param.regionid};'''
+    db.execute(query)
+    db.commit()
+    return {"Msg" : "Region Deleted successfully"}
+
+@router.post("/deleteDistrict")
+async def deleteDistrict(param:input.DeleteDistrict,db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
+    query = f'''DELETE FROM district where id={param.districtid};'''
+    db.execute(query)
+    db.commit()
+    return {"Msg" : "District Deleted successfully"}
+
+@router.post("/deleteLocality")
+async def deleteLocality(param:input.DeleteLocality,db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
+    query = f'''DELETE FROM locality where id={param.localityid};'''
+    db.execute(query)
+    db.commit()
+    return {"Msg" : "Locality Deleted successfully"}
+
+
+@router.post("/deleteSchool")
+async def deleteSchool(param:input.DeleteSchool,db: Session = Depends(database.get_db),superadmin=Depends(get_super_admin)):
+    query = f'''DELETE FROM school where id={param.schoolid};'''
+    db.execute(query)
+    db.commit()
+    return {"Msg" : "School Deleted successfully"}
